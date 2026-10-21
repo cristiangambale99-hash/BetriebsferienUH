@@ -67,35 +67,39 @@ Unterhaltsreinigung`;
 
 const REMIND_INTRO = `Vor einigen Tagen haben wir Sie zu Ihren Betriebsferien über Weihnachten und Neujahr angefragt. Falls bei Ihnen alles wie gewohnt läuft, ist nichts weiter nötig. Falls Sie Betriebsferien haben und weniger oder keine Reinigung wünschen, freuen wir uns über Ihre kurze Rückmeldung.`;
 
-// HTML-Mail: tabellenbasiert, Verdana (Hausschrift für Mails), Logo als gehostetes Bild
-function mailHtml(c, s, { reminder = false } = {}) {
+// HTML-Mail: wirkt wie ein normaler Geschäftsbrief (weisser Hintergrund, linksbündig, Signatur).
+// Logo als Inline-Bild (cid:cs-logo) – Outlook blockiert es so nicht. In der Vorschau: gehostete URL.
+const LOGO_CID = 'cs-logo';
+function logoAttachment() { return { filename: 'clean-service-logo.png', content: require('./_logo'), content_type: 'image/png', content_id: LOGO_CID }; }
+const F = 'font-family:Verdana,Geneva,sans-serif;';
+function mailHtml(c, s, { reminder = false, inline = false } = {}) {
   const body = fill(s.body || DEFAULT_BODY, c, s);
   const paras = body.split(/\n\s*\n/).map(p => p.trim()).filter(Boolean);
   const link = `${BASE_URL}/r/${c.token}`;
+  const logo = inline ? `cid:${LOGO_CID}` : `${BASE_URL}/brand/clean-service-logo.png`;
   const btnLabel = reminder ? 'Betriebsferien jetzt melden' : 'Betriebsferien melden';
-  // Knopf nach dem Absatz einsetzen, der den Hinweis auf den Knopf enthält (sonst nach dem 2. Absatz)
   let idx = paras.findIndex(p => /Knopf|Link/i.test(p)); if (idx < 0) idx = Math.min(1, paras.length - 1);
-  const P = p => `<p style="margin:0 0 14px;font-family:Verdana,Geneva,sans-serif;font-size:14px;line-height:1.65;color:#3c3c3b">${esc(p).replace(/\n/g, '<br>')}</p>`;
-  const btn = `<table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:6px 0 18px"><tr><td style="background:#1b8384;border-radius:8px"><a href="${link}" style="display:inline-block;padding:13px 24px;font-family:Verdana,Geneva,sans-serif;font-size:14px;font-weight:bold;color:#ffffff;text-decoration:none">${btnLabel}</a></td></tr></table>`;
+  const P = p => `<p style="margin:0 0 16px;${F}font-size:14px;line-height:22px;color:#3c3c3b">${esc(p).replace(/\n/g, '<br>')}</p>`;
+  const btn = `<table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:4px 0 22px"><tr><td align="center" bgcolor="#1b8384" style="background:#1b8384;border-radius:6px;padding:12px 26px;mso-padding-alt:12px 26px"><a href="${link}" target="_blank" style="${F}font-size:14px;font-weight:bold;line-height:18px;color:#ffffff;text-decoration:none;display:inline-block">${btnLabel}</a></td></tr></table>`;
   let html = '';
   paras.forEach((p, i) => { if (reminder && i === 1) html += P(fill(REMIND_INTRO, c, s)); html += P(p); if (i === idx) html += btn; });
-  return `<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>${esc(fill(s.subject, c, s))}</title></head>
-<body style="margin:0;padding:0;background:#f3f6f7">
-<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#f3f6f7"><tr><td align="center" style="padding:24px 12px">
-<table role="presentation" width="620" cellspacing="0" cellpadding="0" border="0" style="max-width:620px;width:100%;background:#ffffff;border-radius:12px">
-<tr><td style="padding:28px 32px 8px"><img src="${BASE_URL}/brand/clean-service-logo.png" width="180" alt="Clean Service by Scaramuzzo" style="display:block;width:180px;height:auto;border:0"></td></tr>
-<tr><td style="padding:12px 32px 8px">${html}</td></tr>
-<tr><td style="padding:8px 32px 28px"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"><tr><td style="border-top:1px solid #dcebee;padding-top:14px;font-family:Verdana,Geneva,sans-serif;font-size:11.5px;line-height:1.6;color:#767676">
-<span style="color:#60beb3;font-weight:bold">Clean Service Scaramuzzo AG</span><br>Unterhaltsreinigung<br>Industriestrasse 5 · 8307 Effretikon<br>T 0844 355 355 · ${esc(s.reply_to)} · clean-service.ch<br><br><span style="color:#60beb3;font-weight:bold">DIE NEUE WELT VON CLEAN SERVICE.</span>
+  const rt = esc(s.reply_to || 'unterhaltsreinigung@clean-service.ch');
+  return `<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="x-apple-disable-message-reformatting"><title>${esc(fill(s.subject, c, s))}</title></head>
+<body style="margin:0;padding:0;background:#ffffff">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" style="background:#ffffff"><tr><td align="left" style="padding:24px 20px">
+<table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:600px">
+<tr><td style="padding:0 0 30px"><img src="${logo}" width="190" height="60" alt="Clean Service by Scaramuzzo" style="display:block;width:190px;height:60px;border:0;outline:none"></td></tr>
+<tr><td>${html}</td></tr>
+<tr><td style="padding:6px 0 0"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"><tr><td style="border-top:1px solid #dcebee;padding-top:14px;${F}font-size:12px;line-height:19px;color:#767676">
+Industriestrasse 5 · 8307 Effretikon<br>T <a href="tel:+41844355355" style="color:#767676;text-decoration:none">0844 355 355</a> · <a href="mailto:${rt}" style="color:#1b8384;text-decoration:none">${rt}</a> · <a href="https://www.clean-service.ch" style="color:#1b8384;text-decoration:none">clean-service.ch</a>
 </td></tr></table></td></tr>
 </table>
-<p style="margin:14px 0 0;font-family:Verdana,Geneva,sans-serif;font-size:11px;color:#9aa5a8">Diese Nachricht wurde automatisch versendet. Antworten Sie bitte nicht direkt auf diese E-Mail, sondern über den Link oder an ${esc(s.reply_to)}.</p>
 </td></tr></table></body></html>`;
 }
 function mailText(c, s, { reminder = false } = {}) {
   const body = fill(s.body || DEFAULT_BODY, c, s);
   const link = `${BASE_URL}/r/${c.token}`;
-  return (reminder ? fill(REMIND_INTRO, c, s) + '\n\n' : '') + body + `\n\nBetriebsferien melden: ${link}\n\nClean Service Scaramuzzo AG · Industriestrasse 5 · 8307 Effretikon · T 0844 355 355`;
+  return (reminder ? fill(REMIND_INTRO, c, s) + '\n\n' : '') + body + `\n\nBetriebsferien melden: ${link}\n\nIndustriestrasse 5 · 8307 Effretikon · T 0844 355 355 · clean-service.ch`;
 }
 
 async function resendSend(payload) {
@@ -111,4 +115,4 @@ async function resendBatch(items) {
   return j;
 }
 
-module.exports = { admin, pub, readBody, json, isAdmin, fmtDate, esc, fill, mailHtml, mailText, resendSend, resendBatch, DEFAULT_BODY, BASE_URL };
+module.exports = { logoAttachment, admin, pub, readBody, json, isAdmin, fmtDate, esc, fill, mailHtml, mailText, resendSend, resendBatch, DEFAULT_BODY, BASE_URL };

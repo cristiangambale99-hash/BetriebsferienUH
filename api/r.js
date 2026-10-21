@@ -32,18 +32,27 @@ module.exports = async (req, res) => {
       const lines = weekLines(weeks);
       const sum = `Betriebsferien ${L.fmtDate(b.von)} – ${L.fmtDate(b.bis)}` + (lines.length ? ' · ' + lines.join(' · ') : '');
       const note = String(b.note || '').trim();
-      const P = t => `<p style="margin:0 0 12px;font-family:Verdana,Geneva,sans-serif;font-size:14px;line-height:1.6;color:#3c3c3b">${t}</p>`;
-      const html = `<!doctype html><html lang="de"><body style="margin:0;background:#f3f6f7"><table role="presentation" width="100%" cellspacing="0" cellpadding="0"><tr><td align="center" style="padding:24px 12px"><table role="presentation" width="620" style="max-width:620px;width:100%;background:#fff;border-radius:12px"><tr><td style="padding:28px 32px">
-<img src="${L.BASE_URL}/brand/clean-service-logo.png" width="180" alt="Clean Service by Scaramuzzo" style="display:block;width:180px;height:auto;border:0;margin-bottom:20px">
+      const F = 'font-family:Verdana,Geneva,sans-serif;';
+      const P = t => `<p style="margin:0 0 16px;${F}font-size:14px;line-height:22px;color:#3c3c3b">${t}</p>`;
+      const rows = Object.keys(weeks).sort((a, b) => +a - +b).map(kw => `<tr><td style="padding:9px 14px;border-top:1px solid #dcebee;${F}font-size:14px;color:#3c3c3b">KW ${kw}</td><td align="right" style="padding:9px 14px;border-top:1px solid #dcebee;${F}font-size:14px;font-weight:bold;color:${+weeks[kw] === 0 ? '#3c3c3b' : '#1b8384'}">${+weeks[kw] === 0 ? 'Kein Einsatz' : weeks[kw] + '× reduziert'}</td></tr>`).join('');
+      const html = `<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="margin:0;padding:0;background:#ffffff">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff"><tr><td align="left" style="padding:24px 20px"><table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:600px">
+<tr><td style="padding:0 0 30px"><img src="cid:cs-logo" width="190" height="60" alt="Clean Service by Scaramuzzo" style="display:block;width:190px;height:60px;border:0"></td></tr>
+<tr><td>
 ${P(L.esc(L.fill('{Anrede}', d, {})))}
-${P('Herzlichen Dank für Ihre Rückmeldung. Wir haben Ihre Betriebsferien für <b>' + L.esc(d.objekt || d.kunde) + '</b> erfasst:')}
-<table role="presentation" cellspacing="0" cellpadding="0" style="margin:0 0 16px;background:#eef7f8;border-radius:10px;width:100%"><tr><td style="padding:14px 16px;font-family:Verdana,Geneva,sans-serif;font-size:14px;line-height:1.6;color:#3c3c3b"><b>${L.esc(L.fmtDate(b.von))} – ${L.esc(L.fmtDate(b.bis))}</b><br>${lines.map(L.esc).join('<br>')}${note ? '<br><i>«' + L.esc(note) + '»</i>' : ''}</td></tr></table>
-${P('Wir planen die Einsätze entsprechend. Änderungen sind bis zum ' + L.esc(L.fmtDate(d.deadline)) + ' über denselben Link möglich: <a href="' + L.BASE_URL + '/r/' + token + '" style="color:#1b8384">Betriebsferien anpassen</a>')}
-${P('Freundliche Grüsse<br>Clean Service Scaramuzzo AG · Unterhaltsreinigung · T 0844 355 355')}
-</td></tr></table></td></tr></table></body></html>`;
+${P('Herzlichen Dank für Ihre Rückmeldung. Wir haben Ihre Betriebsferien für ' + L.esc(d.objekt || d.kunde) + ' erfasst und planen die Reinigung entsprechend.')}
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 18px;border:1px solid #dcebee;border-radius:8px;border-collapse:separate">
+<tr><td colspan="2" bgcolor="#eef7f8" style="background:#eef7f8;padding:12px 14px;${F}font-size:14px;color:#3c3c3b"><span style="font-size:11px;letter-spacing:1px;color:#767676">IHRE BETRIEBSFERIEN</span><br><b style="font-size:15px">${L.esc(L.fmtDate(b.von))} – ${L.esc(L.fmtDate(b.bis))}</b></td></tr>
+${rows}${note ? `<tr><td colspan="2" style="padding:9px 14px;border-top:1px solid #dcebee;${F}font-size:14px;color:#3c3c3b"><b>Bemerkung:</b> ${L.esc(note)}</td></tr>` : ''}
+</table>
+${P('Falls sich etwas ändert, können Sie Ihre Angaben jederzeit über denselben Link anpassen: <a href="' + L.BASE_URL + '/r/' + token + '" style="color:#1b8384">Betriebsferien anpassen</a>')}
+${P('Freundliche Grüsse<br><br>Clean Service Scaramuzzo AG<br>Unterhaltsreinigung')}
+</td></tr>
+<tr><td style="border-top:1px solid #dcebee;padding-top:14px;${F}font-size:12px;line-height:19px;color:#767676">Industriestrasse 5 · 8307 Effretikon<br>T 0844 355 355 · <a href="mailto:${s.reply_to}" style="color:#1b8384;text-decoration:none">${s.reply_to}</a> · <a href="https://www.clean-service.ch" style="color:#1b8384;text-decoration:none">clean-service.ch</a></td></tr>
+</table></td></tr></table></body></html>`;
       const from = `${process.env.SENDER_NAME || 'Clean Service Scaramuzzo AG · Unterhaltsreinigung'} <noreply@clean-service.ch>`;
       const to = []; if (/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(d.email || '')) to.push(d.email);
-      if (to.length) await L.resendSend({ from, to, reply_to: s.reply_to, subject: `Bestätigung Betriebsferien – ${d.kunde}`, html, text: `${L.fill('{Anrede}', d, {})}\n\nWir haben Ihre Betriebsferien erfasst: ${sum}${note ? '\nBemerkung: ' + note : ''}\n\nClean Service Scaramuzzo AG · Unterhaltsreinigung` });
+      if (to.length) await L.resendSend({ from, to, reply_to: s.reply_to, subject: `Bestätigung Betriebsferien – ${d.kunde}`, html, attachments: [L.logoAttachment()], text: `${L.fill('{Anrede}', d, {})}\n\nWir haben Ihre Betriebsferien erfasst: ${sum}${note ? '\nBemerkung: ' + note : ''}\n\nClean Service Scaramuzzo AG · Unterhaltsreinigung` });
       const cc = process.env.CC_RESPONSES || 'unterhaltsreinigung@clean-service.ch';
       if (cc) await L.resendSend({ from, to: [cc], subject: `Betriebsferien gemeldet: ${d.kunde}${d.objekt ? ' · ' + d.objekt : ''}`, text: `${d.kunde}\n${d.objekt}\n${d.ansprechperson} · ${d.email}\n\n${sum}${note ? '\nBemerkung: ' + note : ''}\n\nIm Eingang: ${L.BASE_URL}/` });
     } catch (e) { console.error('confirmation mail failed', e.message); }

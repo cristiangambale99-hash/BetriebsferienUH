@@ -24,3 +24,16 @@ $('#pPrevMail').addEventListener('click',()=>BF_openPreview($('#panel').dataset.
 $('#pPrevCust').addEventListener('click',()=>BF_openPreview($('#panel').dataset.id,'kunde'));
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&ov.classList.contains('open'))$('#kClose').click();});
 }();
+
+/* Etappenversand: /api/send so lange aufrufen, bis alle Empfänger durch sind (Resend-Limit, Logo als Inline-Bild) */
+!function(){const _f=window.fetch.bind(window);
+window.fetch=async function(u,o){
+ if(typeof u==='string'&&u.indexOf('/api/send')===0&&o&&o.body){let b;try{b=JSON.parse(o.body)}catch(e){b=null}
+  if(b&&!b.test){b.run_started=new Date().toISOString();const tot={ok:!0,sent:0,failed:0,skipped:0};let ex=[];const lbl=document.getElementById('sendLbl'),txt=lbl&&lbl.textContent;
+   try{for(let k=0;k<60;k++){const r=await _f(u,Object.assign({},o,{body:JSON.stringify(Object.assign({},b,{continued:k>0,exclude:ex}))}));const j=await r.json();
+    if(!r.ok){if(k===0)return new Response(JSON.stringify(j),{status:r.status,headers:{'content-type':'application/json'}});tot.error=j.error;break}
+    tot.sent+=j.sent||0;tot.failed+=j.failed||0;tot.skipped+=j.skipped||0;ex=ex.concat(j.failed_ids||[]);
+    if(lbl)lbl.textContent='Versand läuft … '+tot.sent+' versendet'+(j.remaining?', noch '+j.remaining:'');
+    if(!j.more)break}}finally{if(lbl&&txt)lbl.textContent=txt}
+   return new Response(JSON.stringify(tot),{status:200,headers:{'content-type':'application/json'}})}}
+ return _f(u,o)}}();
