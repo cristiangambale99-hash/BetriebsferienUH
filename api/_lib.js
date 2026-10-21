@@ -16,6 +16,7 @@ async function rpc(fn, args) {
   return j;
 }
 const admin = (action, p = {}) => rpc('bf_admin', { p_secret: DB_SECRET, p_action: action, p });
+const adminCust = (action, p = {}) => rpc('bf_admin_cust', { p_secret: DB_SECRET, p_action: action, p });
 const pub = (action, p = {}) => rpc('bf_public', { p_action: action, p });
 
 function readBody(req) {
@@ -115,4 +116,4 @@ async function resendBatch(items) {
   return j;
 }
 
-module.exports = { logoAttachment, admin, pub, readBody, json, isAdmin, fmtDate, esc, fill, mailHtml, mailText, resendSend, resendBatch, DEFAULT_BODY, BASE_URL };
+module.exports = { adminCust, logoAttachment, admin, pub, readBody, json, isAdmin, fmtDate, esc, fill, mailHtml, mailText, resendSend, resendBatch, DEFAULT_BODY, BASE_URL };

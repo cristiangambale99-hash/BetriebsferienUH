@@ -19,6 +19,9 @@
 .errbox{background:var(--cs-err-bg);border:1px solid rgba(200,85,75,.35);border-radius:10px;padding:12px 14px;font-size:14px;margin-bottom:14px}
 .inb{list-style:none;margin:0;padding:0}
 .listfoot{display:flex;flex-wrap:wrap;gap:6px 18px;justify-content:space-between;padding:14px 18px;border-top:1px solid var(--cs-line,#dcebee);font-size:13.5px;color:var(--cs-muted,#767676)}.listfoot b{color:var(--cs-ink,#3c3c3b);font-weight:600}.listfoot:empty{display:none}
+.cdlg{position:fixed;inset:0;z-index:120;background:rgba(30,40,45,.35);display:grid;place-items:center;padding:16px}.cdlg[hidden]{display:none}.cdlg .card{width:min(460px,100%);padding:24px 22px;max-height:calc(100dvh - 32px);overflow:auto}.cdlg .field{margin-bottom:12px}
+.errbox{background:#fbeceb;border:1px solid rgba(200,85,75,.35);border-radius:10px;padding:10px 12px;font-size:14px;margin:4px 0 8px}
+.btn-del{color:#b3261e!important}.panel-f{flex-wrap:wrap}
 .pvbar{flex-wrap:wrap;justify-content:flex-start!important;gap:8px 10px!important}
 .pvbar #kClose{margin-left:auto}
 .pvseg{display:inline-flex;background:rgba(255,255,255,.12);border-radius:999px;padding:3px}
@@ -166,7 +169,7 @@
 <svg class="wave" viewBox="0 0 560 140" preserveAspectRatio="none" aria-hidden="true"><path d="M140 140 C230 90 330 120 420 70 C480 38 520 40 560 18 L560 140 Z" fill="#9ad3d3" opacity=".45"/><path d="M280 140 C350 110 430 128 500 92 C530 78 548 76 560 70 L560 140 Z" fill="#2bb6b7" opacity=".28"/></svg>
 <div class="inner">
 <div><div class="eyebrow">Unterhaltsreinigung · Kundenliste</div><h1>Kunden</h1><p class="sub" id="listSub"></p></div>
-<button class="btn btn-p" data-go="import"><svg><use href="#i-upload"/></svg>Excel importieren</button>
+<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-s" id="addCust" type="button"><svg><use href="#i-plus"/></svg>Kunde hinzufügen</button><button class="btn btn-p" data-go="import"><svg><use href="#i-upload"/></svg>Excel importieren</button></div>
 </div>
 </div>
 <div class="content">
@@ -308,6 +311,17 @@
 <span id="kbarTx" class="pvtx"></span><button class="icon-btn" id="kClose" aria-label="Vorschau schliessen"><svg><use href="#i-x"/></svg></button></div>
 <div class="kpage pvpage" id="kpage"><iframe class="mailframe" id="mailframe" title="Mail-Vorschau"></iframe><iframe class="mailframe custframe" id="custframe" title="Kundenansicht" hidden></iframe></div>
 </div>
+<!-- Kunde hinzufügen / bearbeiten -->
+<div class="cdlg" id="cdlg" hidden role="dialog" aria-modal="true" aria-labelledby="cdlgT">
+<form class="card" id="cForm" novalidate>
+<h2 id="cdlgT" style="font-size:18px;font-weight:600;margin-bottom:14px">Kunde hinzufügen</h2>
+<div class="field"><label for="cK">Kunde <span class="req">*</span></label><input id="cK" name="kunde" placeholder="z. B. Muster AG, 8001 Zürich"></div>
+<div class="field"><label for="cO">Objekt (Adresse)</label><input id="cO" name="objekt" placeholder="z. B. Bahnhofstrasse 1, 8001 Zürich"></div>
+<div class="field"><label for="cA">Ansprechperson</label><input id="cA" name="ansprechperson" placeholder="z. B. Fr. Muster, Anna"></div>
+<div class="field"><label for="cE">E-Mail</label><input id="cE" name="email" type="email" inputmode="email" placeholder="name@firma.ch"></div>
+<div class="errbox" id="cErr" hidden></div>
+<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:6px"><button type="button" class="btn btn-s" id="cCancel">Abbrechen</button><button type="submit" class="btn btn-p" id="cSave">Speichern</button></div>
+</form></div>
 <div class="toast" id="toast" role="status" aria-live="polite"><div class="ic" id="toastIc"></div><span id="toastTx"></span></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>

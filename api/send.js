@@ -8,6 +8,7 @@ module.exports = async (req, res) => {
   try {
     const body = await L.readBody(req);
     const by = req.headers['x-admin-user'] || 'Admin';
+    if (!body.test && !body.continued) { try { await require('./_verkauf').syncVerkauf({ force: true }); } catch (e) { console.error('sync verkauf', e.message); } }
     const d = await L.admin('bootstrap');
     const s = { ...d.settings, ...(body.settings || {}) }; if (!s.body) s.body = L.DEFAULT_BODY;
     const from = `${s.sender_name || 'Clean Service Scaramuzzo AG · Unterhaltsreinigung'} <noreply@clean-service.ch>`; // Absender fix: noreply@clean-service.ch
