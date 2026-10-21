@@ -23,7 +23,10 @@ const HDR = () => ({ Authorization: 'Token ' + process.env.BEEKEEPER_TOKEN, 'Con
 
 // Beekeeper-Suche nach Chat-Titel (?q=)
 async function search(q) {
+  q = String(q || '').replace(/[^\p{L}\p{N} .-]+/gu, ' ').replace(/\s+/g, ' ').trim();
+  if (q.length < 2) return [];
   const r = await fetch(`${BASE()}/api/2/chats/groups?q=${encodeURIComponent(q)}`, { headers: HDR() });
+  if (r.status === 400) return [];
   if (!r.ok) throw new Error('Beekeeper-Suche ' + r.status);
   const j = await r.json();
   return ((j && j.chats) || []).map(c => ({ id: c.id, title: c.title || '', desc: c.description || '' }));
