@@ -133,4 +133,8 @@ async function resendBatch(items) {
   return j;
 }
 
-module.exports = { weekRanges, fmtShort, adminCust, logoAttachment, admin, pub, readBody, json, isAdmin, fmtDate, esc, fill, mailHtml, mailText, resendSend, resendBatch, DEFAULT_BODY, BASE_URL };
+// Musterkunde für Testmails (wird nie gespeichert)
+const TEST_TOKEN = 'c1ea5e000000';
+function testCustomer(email) { return { kunde: 'Clean Service Scaramuzzo AG', objekt: 'Industriestrasse 5, 8307 Effretikon', ansprechperson: '', email: email || '', token: TEST_TOKEN + (email ? '?e=' + encodeURIComponent(email) : '') }; }
+
+module.exports = { TEST_TOKEN, testCustomer, weekRanges, fmtShort, adminCust, logoAttachment, admin, pub, readBody, json, isAdmin, fmtDate, esc, fill, mailHtml, mailText, resendSend, resendBatch, DEFAULT_BODY, BASE_URL };

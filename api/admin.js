@@ -46,7 +46,7 @@ module.exports = async (req, res) => {
       // Mail-Vorschau mit den aktuellen (ungespeicherten) Einstellungen
       const d = await L.admin('bootstrap');
       const s = { ...d.settings, ...(body.settings || {}) }; if (!s.body) s.body = L.DEFAULT_BODY;
-      const c = d.customers.find(x => x.id === body.id) || d.customers[0] || { kunde: 'Muster AG', objekt: 'Bahnhofstrasse 1, Effretikon', ansprechperson: 'Frau Muster', email: 'muster@example.ch', token: 'beispiel' };
+      const c = d.customers.find(x => x.id === body.id) || L.testCustomer('');
       res.statusCode = 200; res.setHeader('content-type', 'text/html; charset=utf-8'); res.setHeader('cache-control', 'no-store');
       return res.end(L.mailHtml(c, s, { reminder: !!body.reminder }));
     }

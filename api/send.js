@@ -16,7 +16,7 @@ module.exports = async (req, res) => {
     const reminder = kind === 'erinnerung';
 
     if (body.test) {
-      const c = d.customers[0] || { kunde: 'Muster AG', objekt: 'Bahnhofstrasse 1, Effretikon', ansprechperson: 'Frau Muster', email: body.test, token: 'beispiel' };
+      const c = L.testCustomer(String(body.test).trim().toLowerCase()); // Musterkunde Clean Service, nie ein echter Kunde
       const r = await L.resendSend({ from, to: [body.test], reply_to: s.reply_to, subject: '[TEST] ' + L.fill(s.subject, c, s), html: L.mailHtml(c, s, { reminder, inline: true }), text: L.mailText(c, s, { reminder }), attachments: [L.logoAttachment()] });
       return L.json(res, 200, { ok: true, id: r.id });
     }

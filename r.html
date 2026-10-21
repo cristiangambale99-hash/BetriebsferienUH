@@ -119,12 +119,13 @@ body{background:#f6fafb}
   const token=(location.pathname.match(/\/r\/([a-f0-9]+)/i)||[])[1]||new URLSearchParams(location.search).get('t')||'';
 
   const PV=new URLSearchParams(location.search).has('pv');
+  const TE=new URLSearchParams(location.search).get('e'), TQ=TE?'&e='+encodeURIComponent(TE):'';
   let D=null, P0=null, P1=null, MIN=null, MAX=null, selA=null, selB=null, picking=false;
   ic($('#loadIc'),'loader');
 
   async function load(){
     try{
-      let j; if(PV){ j=window.parent&&window.parent.__bfPv; if(!j) throw new Error('Vorschau'); } else { const r=await fetch('/api/r?t='+encodeURIComponent(token)); j=await r.json(); if(!r.ok) throw new Error(j.error||'Fehler'); }
+      let j; if(PV){ j=window.parent&&window.parent.__bfPv; if(!j) throw new Error('Vorschau'); } else { const r=await fetch('/api/r?t='+encodeURIComponent(token)+TQ); j=await r.json(); if(!r.ok) throw new Error(j.error||'Fehler'); }
       D=j; P0=parse(j.period_from); P1=parse(j.period_to);
       MIN=new Date(P0.getFullYear(),P0.getMonth(),1); MAX=new Date(P1.getFullYear(),P1.getMonth()+1,0);
       $('#hSub').textContent=[j.kunde,j.objekt,'Unterhaltsreinigung'].filter(Boolean).join(' · ');
@@ -186,7 +187,7 @@ body{background:#f6fafb}
     const btn=e.target.querySelector('.btn-p'); btn.classList.add('busy'); btn.disabled=true; const a=ic(btn.querySelector('.ld'),'loader');
     try{
       if(PV){ await new Promise(x=>setTimeout(x,400)); }
-      const r=PV?{ok:true,json:async()=>({ok:true,email:D.email})}:await fetch('/api/r?t='+encodeURIComponent(token),{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({von:iso(selA),bis:iso(selB),weeks:weeksValue(),note:$('#knote').value})});
+      const r=PV?{ok:true,json:async()=>({ok:true,email:D.email})}:await fetch('/api/r?t='+encodeURIComponent(token)+TQ,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({von:iso(selA),bis:iso(selB),weeks:weeksValue(),note:$('#knote').value})});
       const j=await r.json(); if(!r.ok) throw new Error(j.error||'Fehler beim Speichern');
       { const wv=weeksValue(), wk=isoWeeks(selA,selB), n=Math.round((selB-selA)/DAY)+1, esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
         const note=$('#knote').value.trim();

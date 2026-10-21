@@ -12,7 +12,17 @@ module.exports = async (req, res) => {
     const token = (q.get('t') || '').trim();
     if (!/^[a-f0-9]{8,32}$/i.test(token)) return L.json(res, 404, { error: 'Dieser Link ist ungültig.' });
 
+    // Testlink aus der Testmail: Musterkunde Clean Service, nichts wird gespeichert, keine Beekeeper-Meldung
+    const TEST = token === L.TEST_TOKEN;
+    const testMail = String(q.get('e') || '').trim().toLowerCase();
+    let testCust = null;
+    if (TEST) {
+      const st = (await L.admin('bootstrap')).settings || {};
+      testCust = Object.assign(L.testCustomer(/^[^@\s]+@clean-service\.ch$/.test(testMail) ? testMail : ''), { period_from: st.period_from, period_to: st.period_to, deadline: st.deadline, campaign: st.campaign, response: null });
+    }
+
     if (req.method === 'GET') {
+      if (TEST) return L.json(res, 200, testCust);
       try { return L.json(res, 200, await L.pub('get', { token })); }
       catch { return L.json(res, 404, { error: 'Dieser Link ist ungültig oder abgelaufen.' }); }
     }
@@ -23,17 +33,17 @@ module.exports = async (req, res) => {
     if (b.bis < b.von) return L.json(res, 400, { error: 'Das Ende liegt vor dem Anfang.' });
     const weeks = {}; for (const [k, v] of Object.entries(b.weeks || {})) if (/^\d{1,2}$/.test(k) && [0, 1, 2, 3].includes(+v)) weeks[k] = +v;
     const ip = (req.headers['x-forwarded-for'] || '').split(',')[0].trim();
-    const r = await L.pub('respond', { token, von: b.von, bis: b.bis, weeks, note: String(b.note || '').slice(0, 1000), ip });
+    const r = TEST ? { kunde: testCust.kunde, email: testCust.email } : await L.pub('respond', { token, von: b.von, bis: b.bis, weeks, note: String(b.note || '').slice(0, 1000), ip });
 
     // Info an die Mitarbeitenden im Beekeeper-Chat (Fehler blockieren die Meldung nicht)
-    try {
+    if (!TEST) try {
       const c0 = await L.pub('get', { token });
       await require('./_beekeeper').notify(c0, { von: b.von, bis: b.bis, weeks, note: String(b.note || '').trim() }, { update: !!(c0.response && c0.response.created_at && c0.response.updated_at && c0.response.created_at !== c0.response.updated_at) });
     } catch (e) { console.error('beekeeper failed', e.message); }
 
     // Bestätigung an Kunde + Kopie an UH (Fehler hier dürfen die Meldung nicht blockieren)
     try {
-      const d = await L.pub('get', { token });
+      const d = TEST ? testCust : await L.pub('get', { token });
       const s = { reply_to: process.env.REPLY_TO_FALLBACK || 'unterhaltsreinigung@clean-service.ch' };
       const lines = weekLines(weeks);
       const sum = `Betriebsferien ${L.fmtDate(b.von)} – ${L.fmtDate(b.bis)}` + (lines.length ? ' · ' + lines.join(' · ') : '');
@@ -52,15 +62,15 @@ ${P('Herzlichen Dank für Ihre Rückmeldung. Wir haben Ihre Betriebsferien für 
 <tr><td colspan="2" bgcolor="#eef7f8" style="background:#eef7f8;padding:12px 14px;${F}font-size:14px;color:#3c3c3b"><span style="font-size:11px;letter-spacing:1px;color:#767676">IHRE BETRIEBSFERIEN</span><br><b style="font-size:15px">${L.esc(L.fmtDate(b.von))} – ${L.esc(L.fmtDate(b.bis))}</b></td></tr>
 ${rows}${note ? `<tr><td colspan="2" style="padding:9px 14px;border-top:1px solid #dcebee;${F}font-size:14px;color:#3c3c3b"><b>Bemerkung:</b> ${L.esc(note)}</td></tr>` : ''}
 </table>
-${P('Falls sich etwas ändert, können Sie Ihre Angaben jederzeit über denselben Link anpassen: <a href="' + L.BASE_URL + '/r/' + token + '" style="color:#1b8384">Betriebsferien anpassen</a>')}
+${P('Falls sich etwas ändert, können Sie Ihre Angaben jederzeit über denselben Link anpassen: <a href="' + L.BASE_URL + '/r/' + token + (TEST && testCust.email ? '?e=' + encodeURIComponent(testCust.email) : '') + '" style="color:#1b8384">Betriebsferien anpassen</a>')}
 ${P('Freundliche Grüsse<br><br>Clean Service Scaramuzzo AG<br>Unterhaltsreinigung')}
 </td></tr>
 <tr><td style="border-top:1px solid #dcebee;padding-top:14px;${F}font-size:12px;line-height:19px;color:#767676">Industriestrasse 5 · 8307 Effretikon<br>T 0844 355 355 · <a href="mailto:${s.reply_to}" style="color:#1b8384;text-decoration:none">${s.reply_to}</a> · <a href="https://www.clean-service.ch" style="color:#1b8384;text-decoration:none">clean-service.ch</a></td></tr>
 </table></td></tr></table></body></html>`;
       const from = `${process.env.SENDER_NAME || 'Clean Service Scaramuzzo AG · Unterhaltsreinigung'} <noreply@clean-service.ch>`;
       const to = []; if (/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(d.email || '')) to.push(d.email);
-      if (to.length) await L.resendSend({ from, to, reply_to: s.reply_to, subject: `Bestätigung Betriebsferien – ${d.kunde}`, html, attachments: [L.logoAttachment()], text: `${L.fill('{Anrede}', d, {})}\n\nWir haben Ihre Betriebsferien erfasst: ${sum}${note ? '\nBemerkung: ' + note : ''}\n\nClean Service Scaramuzzo AG · Unterhaltsreinigung` });
-      const cc = process.env.CC_RESPONSES || 'unterhaltsreinigung@clean-service.ch';
+      if (to.length) await L.resendSend({ from, to, reply_to: s.reply_to, subject: `${TEST ? '[TEST] ' : ''}Bestätigung Betriebsferien – ${d.kunde}`, html, attachments: [L.logoAttachment()], text: `${L.fill('{Anrede}', d, {})}\n\nWir haben Ihre Betriebsferien erfasst: ${sum}${note ? '\nBemerkung: ' + note : ''}\n\nClean Service Scaramuzzo AG · Unterhaltsreinigung` });
+      const cc = TEST ? '' : (process.env.CC_RESPONSES || 'unterhaltsreinigung@clean-service.ch');
       if (cc) await L.resendSend({ from, to: [cc], subject: `Betriebsferien gemeldet: ${d.kunde}${d.objekt ? ' · ' + d.objekt : ''}`, text: `${d.kunde}\n${d.objekt}\n${d.ansprechperson} · ${d.email}\n\n${sum}${note ? '\nBemerkung: ' + note : ''}\n\nIm Eingang: ${L.BASE_URL}/` });
     } catch (e) { console.error('confirmation mail failed', e.message); }
 
