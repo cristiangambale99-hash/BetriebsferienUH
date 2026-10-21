@@ -38,7 +38,13 @@ const STOP = /^(ag|gmbh|sa|sarl|ltd|inc|the|die|der|das|und|zurich|zuerich|schwe
 const words = kunde => String(kunde || '').split(',')[0].toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').split(/[^a-z0-9]+/).filter(w => w.length > 2 && !STOP.test(w));
 
 // Richtigen Kundenchat finden. Titel der Chats: «Firma - OBJ 1234». Nur eindeutige Treffer, sonst null.
+const memo = new Map();
 async function findChat(c) {
+  const key = [c.kunde, c.objekt, c.nr].join('|'); const m = memo.get(key);
+  if (m && Date.now() - m.at < 10 * 60 * 1000) return m.ch;
+  const ch = await findChat0(c); memo.set(key, { at: Date.now(), ch }); return ch;
+}
+async function findChat0(c) {
   if (c.nr) {
     const re = new RegExp('(^|\\D)' + String(c.nr).replace(/\D/g, '') + '(\\D|$)');
     const hit = (await search(String(c.nr))).filter(ch => re.test(ch.title));

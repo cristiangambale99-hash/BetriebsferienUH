@@ -57,3 +57,14 @@ $('#pF').addEventListener('click',async e=>{const b=e.target.closest('[data-x]')
 /* Kunden-Funktionen nur zeigen, wenn die Datenbank sie schon kann */
 !function(){const _f=window.fetch.bind(window);window.fetch=async function(u,o){const r=await _f(u,o);
  if(typeof u==='string'&&u.indexOf('/api/admin?action=bootstrap')===0&&r.ok){try{const j=await r.clone().json();document.body.classList.toggle('no-cust',!(j.features&&j.features.cust))}catch(e){}}return r}}();
+
+/* Beekeeper-Status im Eingang: Kundenchat gefunden → Info gepostet; sonst Hinweis «manuell weitergeben» */
+!function(){const $=s=>document.querySelector(s);let busy=!1,known={},active=!0;const H=(el,h,c)=>{if(c!==undefined&&el.className!==c)el.className=c;if(el.innerHTML!==h)el.innerHTML=h};
+function paint(){const ul=$('#inbox');if(!ul)return;let miss=0;ul.querySelectorAll('li[data-id]').forEach(li=>{const id=li.dataset.id;if(!(id in known))return;const t=known[id];let el=li.querySelector('.bkst');if(!el){el=document.createElement('div');el.className='bkst';const ti=li.querySelector('.ti');if(ti)ti.appendChild(el)}
+ if(t){H(el,'<span>Beekeeper</span> Info im Kundenchat «'+t.replace(/[<>&]/g,'')+'» gepostet','bkst ok')}else if(t===null){H(el,'<span>Beekeeper</span> Kein Kundenchat gefunden – Info bitte manuell an die Mitarbeitenden weitergeben, danach abhaken','bkst miss');if(!li.classList.contains('done'))miss++}else{H(el,'','bkst')}});
+ let bn=$('#bkBanner');if(!bn){bn=document.createElement('div');bn.id='bkBanner';bn.className='bkbanner';const card=ul.closest('.card');card.parentNode.insertBefore(bn,card)}
+ if(bn.hidden!==!miss)bn.hidden=!miss;H(bn,'<b>'+miss+' Rückmeldung'+(miss>1?'en':'')+' ohne Beekeeper-Kundenchat.</b> Diese Infos müssen manuell an die Mitarbeitenden weitergegeben werden.')}
+async function check(){if(busy||!active)return;const g=__bf.g&&__bf.g();if(!g||!g.customers)return;const ids=g.customers.filter(c=>c.response&&!(c.id in known)).map(c=>c.id);if(!ids.length)return paint();busy=!0;
+ try{const r=await __bf.api('bk_check',{ids});active=r.active!==!1;Object.assign(known,r.chats||{})}catch(e){}finally{busy=!1}paint()}
+let tm=0;new MutationObserver(()=>{clearTimeout(tm);tm=setTimeout(()=>{paint();check()},150)}).observe(document.getElementById('inbox'),{childList:!0});setTimeout(check,1500);
+}();

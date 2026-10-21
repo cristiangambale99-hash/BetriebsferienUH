@@ -22,6 +22,17 @@ module.exports = async (req, res) => {
       if (!rows.length) return L.json(res, 400, { error: 'Keine Zeilen' });
       return L.json(res, 200, await L.admin('import', { rows, by }));
     }
+    if (action === 'bk_check') {
+      // Für jede Rückmeldung prüfen, ob es einen eindeutigen Beekeeper-Kundenchat gibt
+      const B = require('./_beekeeper');
+      if (!process.env.BEEKEEPER_TOKEN) return L.json(res, 200, { active: false, chats: {} });
+      const d = await L.admin('bootstrap');
+      const ids = new Set(Array.isArray(body.ids) ? body.ids : []);
+      const list = d.customers.filter(c => ids.has(c.id));
+      const out = {}; let k = 0;
+      await Promise.all(Array.from({ length: 4 }, async () => { while (k < list.length) { const c = list[k++]; try { const ch = await B.findChat(c); out[c.id] = ch ? ch.title : null; } catch (e) { out[c.id] = undefined; } } }));
+      return L.json(res, 200, { active: true, chats: out });
+    }
     if (action === 'cust_add') return L.json(res, 200, await L.adminCust('add', { ...body, by }));
     if (action === 'cust_update') return L.json(res, 200, await L.adminCust('update', { ...body, by }));
     if (action === 'cust_delete') return L.json(res, 200, await L.adminCust('delete', { id: body.id, by }));
