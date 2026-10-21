@@ -25,6 +25,12 @@ module.exports = async (req, res) => {
     const ip = (req.headers['x-forwarded-for'] || '').split(',')[0].trim();
     const r = await L.pub('respond', { token, von: b.von, bis: b.bis, weeks, note: String(b.note || '').slice(0, 1000), ip });
 
+    // Info an die Mitarbeitenden im Beekeeper-Chat (Fehler blockieren die Meldung nicht)
+    try {
+      const c0 = await L.pub('get', { token });
+      await require('./_beekeeper').notify(c0, { von: b.von, bis: b.bis, weeks, note: String(b.note || '').trim() }, { update: !!(c0.response && c0.response.created_at && c0.response.updated_at && c0.response.created_at !== c0.response.updated_at) });
+    } catch (e) { console.error('beekeeper failed', e.message); }
+
     // Bestätigung an Kunde + Kopie an UH (Fehler hier dürfen die Meldung nicht blockieren)
     try {
       const d = await L.pub('get', { token });

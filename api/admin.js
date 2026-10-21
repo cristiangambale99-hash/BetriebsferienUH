@@ -13,6 +13,7 @@ module.exports = async (req, res) => {
       const d = await L.admin('bootstrap');
       if (!d.settings.body) d.settings.body = L.DEFAULT_BODY;
       d.base_url = L.BASE_URL;
+      d.features = { cust: await L.adminCust('ping').then(() => true, e => !/function|does not exist|schema cache/i.test(e.message)) };
       return L.json(res, 200, d);
     }
     if (action === 'settings') return L.json(res, 200, await L.admin('settings_set', body));
@@ -25,7 +26,11 @@ module.exports = async (req, res) => {
     if (action === 'cust_update') return L.json(res, 200, await L.adminCust('update', { ...body, by }));
     if (action === 'cust_delete') return L.json(res, 200, await L.adminCust('delete', { id: body.id, by }));
     if (action === 'done') return L.json(res, 200, await L.admin('done', { id: body.id, done: !!body.done, by }));
-    if (action === 'manual') return L.json(res, 200, await L.admin('manual_response', { ...body, by }));
+    if (action === 'manual') {
+      const r = await L.admin('manual_response', { ...body, by });
+      try { const d = await L.admin('bootstrap'); const c = d.customers.find(x => x.id === body.id); if (c) await require('./_beekeeper').notify(c, { von: body.von, bis: body.bis, weeks: body.weeks || {}, note: body.note }, { manual: true }); } catch (e) { console.error('beekeeper failed', e.message); }
+      return L.json(res, 200, r);
+    }
     if (action === 'preview') {
       // Mail-Vorschau mit den aktuellen (ungespeicherten) Einstellungen
       const d = await L.admin('bootstrap');

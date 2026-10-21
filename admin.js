@@ -53,3 +53,7 @@ $('#pF').addEventListener('click',async e=>{const b=e.target.closest('[data-x]')
  if(!confirm('«'+c.kunde+(c.objekt?' · '+c.objekt:'')+'» wirklich löschen? Rückmeldung und Verlauf werden mitgelöscht.'))return;
  try{await __bf.api('cust_delete',{id});__bf.toast('Kunde gelöscht','check');const x=$('#pClose');if(x)x.click();await __bf.reload()}catch(err){__bf.toast(err.message,'error')}});
 }();
+
+/* Kunden-Funktionen nur zeigen, wenn die Datenbank sie schon kann */
+!function(){const _f=window.fetch.bind(window);window.fetch=async function(u,o){const r=await _f(u,o);
+ if(typeof u==='string'&&u.indexOf('/api/admin?action=bootstrap')===0&&r.ok){try{const j=await r.clone().json();document.body.classList.toggle('no-cust',!(j.features&&j.features.cust))}catch(e){}}return r}}();
