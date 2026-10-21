@@ -21,51 +21,56 @@ function text(c, r, { update = false, manual = false } = {}) {
 const BASE = () => String(process.env.BEEKEEPER_URL || '').replace(/\/+$/, '').replace(/^(?!https?:\/\/)/, 'https://');
 const HDR = () => ({ Authorization: 'Token ' + process.env.BEEKEEPER_TOKEN, 'Content-Type': 'application/json', Accept: 'application/json, application/vnd.io.beekeeper.chats+json;version=1' });
 
-// Alle Gruppenchats des UH-Bots (10 Min. zwischengespeichert)
-let cache = { at: 0, chats: [] };
-async function chats() {
-  if (Date.now() - cache.at < 10 * 60 * 1000 && cache.chats.length) return cache.chats;
-  const out = [], seen = new Set();
-  for (let off = 0; off < 5000; off += 200) {
-    const r = await fetch(`${BASE()}/api/2/chats/groups?limit=200&offset=${off}`, { headers: HDR() });
-    if (!r.ok) throw new Error('Beekeeper-Chats ' + r.status);
-    const j = await r.json(); const arr = (j && j.chats) || [];
-    let neu = 0; arr.forEach(c => { if (!seen.has(c.id)) { seen.add(c.id); out.push({ id: c.id, title: c.title || '', desc: c.description || '' }); neu++; } });
-    if (!neu || arr.length < 200) break;
-  }
-  cache = { at: Date.now(), chats: out };
-  return out;
+// Beekeeper-Suche nach Chat-Titel (?q=)
+async function search(q) {
+  const r = await fetch(`${BASE()}/api/2/chats/groups?q=${encodeURIComponent(q)}`, { headers: HDR() });
+  if (!r.ok) throw new Error('Beekeeper-Suche ' + r.status);
+  const j = await r.json();
+  return ((j && j.chats) || []).map(c => ({ id: c.id, title: c.title || '', desc: c.description || '' }));
 }
 
 // Normalisieren: «Friesenbergstr. 108» = «friesenbergstrasse108»
 const N = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/str\.(?=\s|\d|$)/g, 'strasse').replace(/[^a-z0-9]/g, '');
-const STOP = /^(ag|gmbh|sa|sarl|ltd|the|die|der|das|und|zurich|zuerich|schweiz|switzerland|swiss|stiftung|verein|praxis|dr|med)$/;
-function firmaWords(kunde) { return String(kunde || '').split(',')[0].toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').split(/[^a-z0-9]+/).filter(w => w.length > 2 && !STOP.test(w)); }
+const STOP = /^(ag|gmbh|sa|sarl|ltd|inc|the|die|der|das|und|zurich|zuerich|schweiz|switzerland|swiss|suisse|stiftung|verein|praxis|dr|med|immobilien|technik|treuhand|partner|consulting|services|holding|management|group|center|zentrum)$/;
+const words = kunde => String(kunde || '').split(',')[0].toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').split(/[^a-z0-9]+/).filter(w => w.length > 2 && !STOP.test(w));
 
-// Richtigen Kundenchat finden: Adresse (Strasse + Nr.) im Chat, bei mehreren Treffern zusätzlich der Firmenname
-function match(list, c) {
+// Richtigen Kundenchat finden. Titel der Chats: «Firma - OBJ 1234». Nur eindeutige Treffer, sonst null.
+async function findChat(c) {
+  if (c.nr) {
+    const re = new RegExp('(^|\\D)' + String(c.nr).replace(/\D/g, '') + '(\\D|$)');
+    const hit = (await search(String(c.nr))).filter(ch => re.test(ch.title));
+    if (hit.length === 1) return hit[0];
+  }
+  const w = words(c.kunde); if (!w.length) return null;
+  const seen = new Map();
+  for (const q of [String(c.kunde).split(',')[0].trim(), w.slice().sort((a, b) => b.length - a.length)[0]]) {
+    for (const ch of await search(q)) seen.set(ch.id, ch);
+    if (seen.size) break;
+  }
   const street = N(String(c.objekt || '').split(',')[0]);
-  const fw = firmaWords(c.kunde);
-  const scored = list.map(ch => {
-    const t = N(ch.title), d = N(ch.title + ' ' + ch.desc);
-    const s = (street.length > 5 && /\d/.test(street) && d.includes(street) ? 2 : 0) + (fw.length && fw.some(w => t.includes(w)) ? 1 : 0)
-      + (c.nr && new RegExp('obj\\s*' + c.nr + '(?!\\d)', 'i').test(ch.title) ? 3 : 0);
+  const plz = (String(c.objekt || '').match(/\b(\d{4})\s+([A-Za-zÀ-ÿ.\- ]+)/) || []);
+  const city = N(plz[2] || '');
+  const scored = [...seen.values()].map(ch => {
+    const t = N(ch.title), all = N(ch.title + ' ' + ch.desc);
+    const fw = w.filter(x => t.includes(N(x))).length;
+    let s = fw === w.length ? 2 : fw ? 1 : 0;
+    if (street.length > 5 && /\d/.test(street) && all.includes(street)) s += 3;
+    if (plz[1] && all.includes(plz[1])) s += 1;
+    if (city.length > 2 && t.includes(city)) s += 1;
     return { ch, s };
-  }).filter(x => x.s > 0).sort((a, b) => b.s - a.s);
+  }).filter(x => x.s >= 2).sort((a, b) => b.s - a.s);
   if (!scored.length) return null;
-  const top = scored[0];
-  if (top.s >= 3 || (top.s === 2 && scored.filter(x => x.s === 2).length === 1)) return top.ch;
-  if (top.s === 1 && scored.length === 1) return top.ch;   // nur Firmenname, aber eindeutig
+  if (scored.length === 1 || scored[0].s > scored[1].s) return scored[0].ch;
   return null;
 }
 
 async function notify(c, r, opt) {
   if (!process.env.BEEKEEPER_URL || !process.env.BEEKEEPER_TOKEN) return { skipped: true };
-  const ch = match(await chats(), c);
+  const ch = await findChat(c);
   const id = ch ? ch.id : process.env.BEEKEEPER_CHAT_ID;   // Ersatz-Chat, falls kein Kundenchat gefunden
   if (!id) return { ok: false, error: 'Kein Kundenchat gefunden' };
   const res = await fetch(`${BASE()}/api/2/chats/groups/${encodeURIComponent(id)}/messages`, { method: 'POST', headers: HDR(), body: JSON.stringify({ body: text(c, r, opt) + (ch ? '' : '\n\n(Kein Kundenchat gefunden)') }) });
   if (!res.ok) throw new Error('Beekeeper ' + res.status + ' ' + (await res.text()).slice(0, 200));
   return { ok: true, chat: ch ? ch.title : 'Ersatz-Chat' };
 }
-module.exports = { notify, text, chats, match };
+module.exports = { notify, text, findChat, search };

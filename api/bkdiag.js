@@ -9,8 +9,8 @@ module.exports = async (req, res) => {
       out.push({ p, status: r.status, keys: j && Object.keys(j), n: j && j.chats && j.chats.length, first: j && j.chats && j.chats[0] && j.chats[0].title, last: j && j.chats && j.chats.length && [j.chats[j.chats.length - 1].title, j.chats[j.chats.length - 1].updated_at, j.chats[j.chats.length - 1].id], extra: j && Object.fromEntries(Object.entries(j).filter(([k]) => k !== 'chats')), link: r.headers.get('link') }); }
     res.setHeader('content-type', 'application/json'); return res.end(JSON.stringify(out, null, 1));
   }
-  const list = await B.chats();
-  const tests = JSON.parse(q.get('t') || '[]').map(([kunde, objekt]) => { const m = B.match(list, { kunde, objekt }); return [kunde, objekt, m ? m.title : null]; });
+  const tests = [];
+  for (const [kunde, objekt, nr] of JSON.parse(q.get('t') || '[]')) { const m = await B.findChat({ kunde, objekt, nr }); tests.push([kunde, nr || '', m ? m.title : null]); }
   res.setHeader('content-type', 'application/json; charset=utf-8');
-  res.end(JSON.stringify({ chats: list.length, sample: list.slice(0, 400).map(c => c.title), tests }, null, 1));
+  res.end(JSON.stringify({ tests }, null, 1));
 };
