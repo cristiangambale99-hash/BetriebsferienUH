@@ -3,7 +3,7 @@
 const L = require('./_lib');
 
 module.exports = async (req, res) => {
-  if (!L.isAdmin(req)) return L.json(res, 401, { error: 'Passwort falsch' });
+  if (!L.isAdmin(req)) return L.json(res, 401, { error: 'Code falsch' });
   if (req.method !== 'POST') return L.json(res, 405, { error: 'POST' });
   try {
     const body = await L.readBody(req);

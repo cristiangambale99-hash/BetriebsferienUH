@@ -1,7 +1,7 @@
 const L = require('./_lib');
 
 module.exports = async (req, res) => {
-  if (!L.isAdmin(req)) return L.json(res, 401, { error: 'Passwort falsch' });
+  if (!L.isAdmin(req)) return L.json(res, 401, { error: 'Code falsch' });
   try {
     const q = new URL(req.url, 'http://x').searchParams;
     const action = q.get('action');
