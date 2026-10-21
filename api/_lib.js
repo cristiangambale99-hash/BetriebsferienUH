@@ -32,6 +32,23 @@ const MON = ['Januar','Februar','März','April','Mai','Juni','Juli','August','Se
 function fmtDate(iso) { if (!iso) return ''; const [y, m, d] = String(iso).slice(0, 10).split('-').map(Number); return `${d}. ${MON[m - 1]} ${y}`; }
 function esc(s) { return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
 
+
+// Kalenderwochen zwischen von und bis mit Datum: { 52: '21.12.–27.12.', ... }
+function weekRanges(von, bis) {
+  const p = v => { const [y, m, d] = String(v).slice(0, 10).split('-').map(Number); return new Date(Date.UTC(y, m - 1, d)); };
+  const f = d => String(d.getUTCDate()).padStart(2, '0') + '.' + String(d.getUTCMonth() + 1).padStart(2, '0') + '.';
+  const out = {}; if (!von || !bis) return out;
+  const a = p(von), b = p(bis), DAY = 864e5;
+  let m = new Date(a.getTime() - ((a.getUTCDay() + 6) % 7) * DAY);
+  for (; m <= b; m = new Date(m.getTime() + 7 * DAY)) {
+    const t = new Date(m.getTime() + 3 * DAY), y0 = Date.UTC(t.getUTCFullYear(), 0, 1);
+    const kw = 1 + Math.floor(((t - y0) / DAY) / 7);
+    out[kw] = f(m) + '–' + f(new Date(m.getTime() + 6 * DAY));
+  }
+  return out;
+}
+function fmtShort(iso) { if (!iso) return ''; const [y, m, d] = String(iso).slice(0, 10).split('-'); return `${d}.${m}.${y}`; }
+
 // Anrede aus Ansprechperson: «Frau Keller» / «Herr Brunner» nur wenn Titel bekannt, sonst voller Name
 function anrede(ansprechperson) {
   // Excel-Format: «Fr. Calonder, Lara (044 …)» / «Hr. Özman, Onur» / «Kluemper, Ute»
@@ -116,4 +133,4 @@ async function resendBatch(items) {
   return j;
 }
 
-module.exports = { adminCust, logoAttachment, admin, pub, readBody, json, isAdmin, fmtDate, esc, fill, mailHtml, mailText, resendSend, resendBatch, DEFAULT_BODY, BASE_URL };
+module.exports = { weekRanges, fmtShort, adminCust, logoAttachment, admin, pub, readBody, json, isAdmin, fmtDate, esc, fill, mailHtml, mailText, resendSend, resendBatch, DEFAULT_BODY, BASE_URL };

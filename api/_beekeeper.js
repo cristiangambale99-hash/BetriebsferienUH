@@ -4,14 +4,15 @@ const L = require('./_lib');
 
 function text(c, r, { update = false, manual = false } = {}) {
   const weeks = r.weeks || {};
-  const lines = Object.keys(weeks).sort((a, b) => +a - +b).map(kw => `KW ${kw}: ${+weeks[kw] === 0 ? 'kein Einsatz' : weeks[kw] + '× reduziert'}`);
+  const wr = L.weekRanges(r.von, r.bis);
+  const lines = Object.keys(weeks).sort((a, b) => +a - +b).map(kw => `Betriebsferien KW ${kw}${wr[kw] ? ' (' + wr[kw] + ')' : ''}: ${+weeks[kw] === 0 ? 'kein Einsatz' : weeks[kw] + '× reduziert'}`);
   return [
     update ? 'Betriebsferien geändert' : 'Betriebsferien gemeldet' + (manual ? ' (telefonisch)' : ''),
     '',
     c.kunde,
     c.objekt || '',
     '',
-    `Ferien: ${L.fmtDate(r.von)} – ${L.fmtDate(r.bis)}`,
+    `Betriebsferien: ${L.fmtShort(r.von)} – ${L.fmtShort(r.bis)}`,
     ...lines,
     r.note ? `Bemerkung: ${String(r.note).trim()}` : ''
   ].filter((x, i, a) => x !== '' || (a[i - 1] !== '' && i > 0)).join('\n').trim();

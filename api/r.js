@@ -40,7 +40,8 @@ module.exports = async (req, res) => {
       const note = String(b.note || '').trim();
       const F = 'font-family:Verdana,Geneva,sans-serif;';
       const P = t => `<p style="margin:0 0 16px;${F}font-size:14px;line-height:22px;color:#3c3c3b">${t}</p>`;
-      const rows = Object.keys(weeks).sort((a, b) => +a - +b).map(kw => `<tr><td style="padding:9px 14px;border-top:1px solid #dcebee;${F}font-size:14px;color:#3c3c3b">KW ${kw}</td><td align="right" style="padding:9px 14px;border-top:1px solid #dcebee;${F}font-size:14px;font-weight:bold;color:${+weeks[kw] === 0 ? '#3c3c3b' : '#1b8384'}">${+weeks[kw] === 0 ? 'Kein Einsatz' : weeks[kw] + '× reduziert'}</td></tr>`).join('');
+      const wr = L.weekRanges(b.von, b.bis);
+      const rows = Object.keys(weeks).sort((a, b) => +a - +b).map(kw => `<tr><td style="padding:9px 14px;border-top:1px solid #dcebee;${F}font-size:14px;color:#3c3c3b">KW ${kw}${wr[kw] ? ' <span style="color:#767676">(' + wr[kw] + ')</span>' : ''}</td><td align="right" style="padding:9px 14px;border-top:1px solid #dcebee;${F}font-size:14px;font-weight:bold;color:${+weeks[kw] === 0 ? '#3c3c3b' : '#1b8384'}">${+weeks[kw] === 0 ? 'Kein Einsatz' : weeks[kw] + '× reduziert'}</td></tr>`).join('');
       const html = `<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="margin:0;padding:0;background:#ffffff">
 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff"><tr><td align="left" style="padding:24px 20px"><table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:600px">
 <tr><td style="padding:0 0 30px"><img src="cid:cs-logo" width="190" height="60" alt="Clean Service by Scaramuzzo" style="display:block;width:190px;height:60px;border:0"></td></tr>
