@@ -16,13 +16,18 @@ module.exports = async (req, res) => {
     const reminder = kind === 'erinnerung';
 
     if (body.test) {
-      const c = L.testCustomer(String(body.test).trim().toLowerCase()); // Musterkunde Clean Service, nie ein echter Kunde
+      // Testkunde «TEST · Clean Service Scaramuzzo AG»: eigener Eintrag, damit die Rückmeldung im Eingang erscheint.
+      // Wird nie mit dem Massenversand angeschrieben und meldet nichts an Beekeeper.
+      const tm = String(body.test).trim().toLowerCase();
+      await L.admin('import', { rows: [{ kunde: L.TEST_KUNDE, objekt: 'Industriestrasse 5, 8307 Effretikon', ansprechperson: '', email: tm }], by: 'Testmail' });
+      const d2 = await L.admin('bootstrap');
+      const c = d2.customers.find(x => x.kunde === L.TEST_KUNDE) || L.testCustomer(tm);
       const r = await L.resendSend({ from, to: [body.test], reply_to: s.reply_to, subject: '[TEST] ' + L.fill(s.subject, c, s), html: L.mailHtml(c, s, { reminder, inline: true }), text: L.mailText(c, s, { reminder }), attachments: [L.logoAttachment()] });
       return L.json(res, 200, { ok: true, id: r.id });
     }
 
     // Empfänger bestimmen
-    let list = d.customers.filter(c => c.email && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(c.email));
+    let list = d.customers.filter(c => !L.isTest(c) && c.email && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(c.email));
     const sel = body.recipients || 'alle';
     if (Array.isArray(body.ids)) list = list.filter(c => body.ids.includes(c.id));
     else if (sel === 'offen') list = list.filter(c => !c.response && c.send_status !== 'neu');       // angeschrieben, ohne Rückmeldung
@@ -35,7 +40,7 @@ module.exports = async (req, res) => {
     if (Array.isArray(body.exclude) && body.exclude.length) { const ex = new Set(body.exclude); list = list.filter(c => !ex.has(c.id)); }
     if (!list.length) return L.json(res, run ? 200 : 400, run ? { ok: true, sent: 0, failed: 0, skipped: 0, more: false } : { error: 'Keine Empfänger für diese Auswahl' });
 
-    const noMail = d.customers.filter(c => !c.email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(c.email)).map(c => ({ id: c.id, status: 'err', error: 'Keine gültige E-Mail-Adresse', kind }));
+    const noMail = d.customers.filter(c => !L.isTest(c)).filter(c => !c.email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(c.email)).map(c => ({ id: c.id, status: 'err', error: 'Keine gültige E-Mail-Adresse', kind }));
     if (noMail.length && sel !== 'offen' && !body.continued) await L.admin('mark_sent', { items: noMail, by });
 
     const t0 = Date.now(), logo = L.logoAttachment(), results = [];

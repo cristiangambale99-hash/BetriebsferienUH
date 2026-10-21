@@ -38,6 +38,7 @@ module.exports = async (req, res) => {
     // Info an die Mitarbeitenden im Beekeeper-Chat (Fehler blockieren die Meldung nicht)
     if (!TEST) try {
       const c0 = await L.pub('get', { token });
+      if (L.isTest(c0)) throw new Error('Testkunde – keine Beekeeper-Meldung');
       await require('./_beekeeper').notify(c0, { von: b.von, bis: b.bis, weeks, note: String(b.note || '').trim() }, { update: !!(c0.response && c0.response.created_at && c0.response.updated_at && c0.response.created_at !== c0.response.updated_at) });
     } catch (e) { console.error('beekeeper failed', e.message); }
 
@@ -69,8 +70,8 @@ ${P('Freundliche Grüsse<br><br>Clean Service Scaramuzzo AG<br>Unterhaltsreinigu
 </table></td></tr></table></body></html>`;
       const from = `${process.env.SENDER_NAME || 'Clean Service Scaramuzzo AG · Unterhaltsreinigung'} <noreply@clean-service.ch>`;
       const to = []; if (/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(d.email || '')) to.push(d.email);
-      if (to.length) await L.resendSend({ from, to, reply_to: s.reply_to, subject: `${TEST ? '[TEST] ' : ''}Bestätigung Betriebsferien – ${d.kunde}`, html, attachments: [L.logoAttachment()], text: `${L.fill('{Anrede}', d, {})}\n\nWir haben Ihre Betriebsferien erfasst: ${sum}${note ? '\nBemerkung: ' + note : ''}\n\nClean Service Scaramuzzo AG · Unterhaltsreinigung` });
-      const cc = TEST ? '' : (process.env.CC_RESPONSES || 'unterhaltsreinigung@clean-service.ch');
+      if (to.length) await L.resendSend({ from, to, reply_to: s.reply_to, subject: `${TEST || L.isTest(d) ? '[TEST] ' : ''}Bestätigung Betriebsferien – ${d.kunde}`, html, attachments: [L.logoAttachment()], text: `${L.fill('{Anrede}', d, {})}\n\nWir haben Ihre Betriebsferien erfasst: ${sum}${note ? '\nBemerkung: ' + note : ''}\n\nClean Service Scaramuzzo AG · Unterhaltsreinigung` });
+      const cc = (TEST || L.isTest(d)) ? '' : (process.env.CC_RESPONSES || 'unterhaltsreinigung@clean-service.ch');
       if (cc) await L.resendSend({ from, to: [cc], subject: `Betriebsferien gemeldet: ${d.kunde}${d.objekt ? ' · ' + d.objekt : ''}`, text: `${d.kunde}\n${d.objekt}\n${d.ansprechperson} · ${d.email}\n\n${sum}${note ? '\nBemerkung: ' + note : ''}\n\nIm Eingang: ${L.BASE_URL}/` });
     } catch (e) { console.error('confirmation mail failed', e.message); }
 

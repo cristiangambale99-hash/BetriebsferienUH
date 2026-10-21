@@ -135,6 +135,8 @@ async function resendBatch(items) {
 
 // Musterkunde für Testmails (wird nie gespeichert)
 const TEST_TOKEN = 'c1ea5e000000';
+const TEST_KUNDE = 'TEST · Clean Service Scaramuzzo AG';
+const isTest = c => !!c && (c.kunde === TEST_KUNDE || c.token === TEST_TOKEN);
 function testCustomer(email) { return { kunde: 'Clean Service Scaramuzzo AG', objekt: 'Industriestrasse 5, 8307 Effretikon', ansprechperson: '', email: email || '', token: TEST_TOKEN + (email ? '?e=' + encodeURIComponent(email) : '') }; }
 
-module.exports = { TEST_TOKEN, testCustomer, weekRanges, fmtShort, adminCust, logoAttachment, admin, pub, readBody, json, isAdmin, fmtDate, esc, fill, mailHtml, mailText, resendSend, resendBatch, DEFAULT_BODY, BASE_URL };
+module.exports = { TEST_KUNDE, isTest, TEST_TOKEN, testCustomer, weekRanges, fmtShort, adminCust, logoAttachment, admin, pub, readBody, json, isAdmin, fmtDate, esc, fill, mailHtml, mailText, resendSend, resendBatch, DEFAULT_BODY, BASE_URL };
