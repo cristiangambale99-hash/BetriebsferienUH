@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Betriebsferien UH · Clean Service</title>
+<link rel="icon" href="/brand/clean-service-signet.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="/app.css">
+<style>
+.login{position:fixed;inset:0;background:var(--cs-bg-soft);display:grid;place-items:center;z-index:100;padding:16px}
+.login .card{width:min(420px,100%);padding:28px 26px}
+.login img{width:170px;display:block;margin:0 auto 18px}
+.gantt{margin-top:20px}
+.kpis{grid-template-columns:1fr 1fr 1fr}
+@media (max-width:820px){.kpis{grid-template-columns:1fr 1fr}}
+.dash1{display:grid;grid-template-columns:1fr;gap:20px}
+.errbox{background:var(--cs-err-bg);border:1px solid rgba(200,85,75,.35);border-radius:10px;padding:12px 14px;font-size:14px;margin-bottom:14px}
+.inb{list-style:none;margin:0;padding:0}
+.listfoot{display:flex;flex-wrap:wrap;gap:6px 18px;justify-content:space-between;padding:14px 18px;border-top:1px solid var(--cs-line,#dcebee);font-size:13.5px;color:var(--cs-muted,#767676)}.listfoot b{color:var(--cs-ink,#3c3c3b);font-weight:600}.listfoot:empty{display:none}
+.pvbar{flex-wrap:wrap;justify-content:flex-start!important;gap:8px 10px!important}
+.pvbar #kClose{margin-left:auto}
+.pvseg{display:inline-flex;background:rgba(255,255,255,.12);border-radius:999px;padding:3px}
+.pvseg button{border:0;background:none;color:#fff;font:600 13px var(--cs-font,Figtree,system-ui,sans-serif);padding:6px 14px;border-radius:999px;cursor:pointer;min-height:32px}
+.pvseg button[aria-pressed=true]{background:#fff;color:var(--cs-primary,#1b8384)}
+.pvsel{max-width:340px;min-width:0;flex:1 1 220px;height:34px;border-radius:999px;border:0;padding:0 12px;font:500 13px var(--cs-font,Figtree,system-ui,sans-serif);color:#3c3c3b;background:#fff}
+.pvtx{display:none}
+.pvpage{max-width:760px}
+.pvpage .mailframe{height:calc(100dvh - 120px);min-height:520px;transition:max-width .25s}
+.pvpage.phone{max-width:430px}
+.pvpage.phone .mailframe{max-width:390px;height:780px;margin:0 auto;display:block;border-radius:28px;border:8px solid #3c3c3b}
+.pvpage .mailframe[hidden]{display:none!important}
+.pfprev{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+.pfprev .btn{justify-content:center}
+@media (max-width:820px){.pvdev{display:none}.pvsel{order:3;flex-basis:100%;max-width:none}}
+[data-view=list] .tablewrap td:nth-child(-n+3){max-width:240px;white-space:normal;overflow-wrap:anywhere}
+.inb li{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:start;padding:16px 18px;border-top:1px solid var(--cs-line)}
+.inb li:first-child{border-top:0}
+.inb li:hover{background:var(--cs-bg-soft)}
+.inb li.done{opacity:.5}
+.inb li.done .ti b{text-decoration:line-through}
+.inb .check{margin-top:4px}
+.inb .ti{min-width:0}
+.inb .ti b{display:block;font-size:15px;font-weight:600}
+.inb .ti .ob{color:var(--cs-fg-2);font-size:13.5px}
+.inb .fe{margin-top:8px;font-size:14px}
+.inb .kws{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.inb .kws span{font-size:12.5px;font-weight:600;padding:3px 10px;border-radius:999px;background:var(--cs-taube-bg)}
+.inb .kws span.red{background:var(--cs-aqua-bg)}
+.inb .nt{margin-top:8px;font-size:13.5px;color:var(--cs-fg-2);font-style:italic}
+.inb .rt{text-align:right;font-size:12.5px;color:var(--cs-fg-2);white-space:nowrap;display:grid;gap:8px;justify-items:end}
+.inb .rt .btn{padding:6px 10px;min-height:34px;font-size:13px}
+.dotn{position:absolute;top:6px;right:14px;width:9px;height:9px;border-radius:50%;background:#e0a03a;border:2px solid var(--cs-rail)}
+.mailframe{width:100%;height:640px;border:1px solid var(--cs-line);border-radius:10px;background:#f3f6f7}
+.drop{border:1.5px dashed var(--cs-line-strong);border-radius:12px;padding:22px 16px;display:grid;justify-items:center;gap:6px;text-align:center;background:var(--cs-bg-soft);cursor:pointer}
+.drop .ic{width:56px;height:56px}
+.map{display:grid;gap:8px}
+.map .mrow2{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:center}
+.map .mrow2 span{font-size:13.5px;color:var(--cs-fg-2)}
+.map select{min-height:42px;border:1px solid var(--cs-line-strong);border-radius:8px;padding:8px 10px;background:#fff;font-size:16px;width:100%}
+.prev{border:1px solid var(--cs-line);border-radius:10px;overflow:hidden}
+.prev table{font-size:13.5px}.prev td,.prev th{padding:9px 12px}
+@media (max-width:820px){.inb li{grid-template-columns:auto 1fr;padding:14px 16px}.inb .rt{grid-column:2;text-align:left;justify-items:start}.mailframe{height:520px}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<defs>
+<symbol id="i-home" viewBox="0 0 24 24"><path d="M4 11l8-7 8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+<symbol id="i-users" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5"/><path d="M16 4.8a3.3 3.3 0 0 1 0 6.4M18 14.8c1.9.7 3.1 2.4 3.5 5.2"/></g></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3.5" y="3.5" width="17" height="17" rx="4"/><path d="M12 8v8M8 12h8"/></g></symbol>
+<symbol id="i-cal" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></g></symbol>
+<symbol id="i-cog" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2.8v2.4M12 18.8v2.4M4.2 7.5l2 1.2M17.8 15.3l2 1.2M4.2 16.5l2-1.2M17.8 8.7l2-1.2"/></g></symbol>
+<symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+<symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+<symbol id="i-search" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></g></symbol>
+<symbol id="i-chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+<symbol id="i-ok" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+<symbol id="i-send" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 11.5L20 4l-4.5 16-4.2-6.3z"/><path d="M11.3 13.7L20 4"/></g></symbol>
+<symbol id="i-upload" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V5M7.5 9.5L12 5l4.5 4.5"/><path d="M4 15.5v2.5a1.5 1.5 0 0 0 1.5 1.5h13a1.5 1.5 0 0 0 1.5-1.5v-2.5"/></g></symbol>
+<symbol id="i-mail" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5.5" width="17" height="13" rx="3"/><path d="M4 7l8 6 8-6"/></g></symbol>
+<symbol id="i-copy" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="8.5" y="8.5" width="11" height="11" rx="2.5"/><path d="M15.5 8.5V6a1.5 1.5 0 0 0-1.5-1.5H6A1.5 1.5 0 0 0 4.5 6v8A1.5 1.5 0 0 0 6 15.5h2.5"/></g></symbol>
+<symbol id="i-bell" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></g></symbol>
+<symbol id="i-eye" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12s3.5-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.5 6.5-9.5 6.5S2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></g></symbol>
+<symbol id="i-edit" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l11-11-4-4L4 16z"/><path d="M13 7l4 4"/></g></symbol>
+<symbol id="i-inbox" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 13h4.5l1.5 2.5h5l1.5-2.5h4.5"/><path d="M5.5 5.5h13l2 7.5v5a1.5 1.5 0 0 1-1.5 1.5h-14A1.5 1.5 0 0 1 3.5 18v-5z"/></g></symbol>
+<symbol id="i-download" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v11M7.5 11.5L12 16l4.5-4.5"/><path d="M4 15.5v2.5a1.5 1.5 0 0 0 1.5 1.5h13a1.5 1.5 0 0 0 1.5-1.5v-2.5"/></g></symbol>
+</defs>
+</svg>
+<div class="login" id="login">
+<form class="card" id="loginForm" novalidate>
+<img src="/brand/clean-service-logo.png" alt="Clean Service by Scaramuzzo">
+<h2 style="font-family:var(--cs-font);font-size:18px;font-weight:600;text-align:center;margin-bottom:4px">Betriebsferien UH</h2>
+<p class="muted" style="text-align:center;font-size:13.5px;margin-bottom:18px">Interner Bereich Unterhaltsreinigung</p>
+<div class="field"><label for="lName">Dein Name</label><input type="text" id="lName" placeholder="z. B. Cristian" autocomplete="name"></div>
+<div class="field"><label for="lPw">Passwort</label><input type="password" id="lPw" autocomplete="current-password"><span class="msg" id="lMsg">Passwort falsch.</span></div>
+<button class="btn btn-p" style="width:100%;justify-content:center" type="submit">Anmelden</button>
+</form>
+</div>
+<div class="app" id="app" hidden>
+<nav class="rail" aria-label="Hauptnavigation">
+<div class="signet"><img src="/brand/clean-service-signet.png" alt="Clean Service"></div>
+<button class="nav-i" data-go="dash" aria-current="page"><svg><use href="#i-home"/></svg>Übersicht</button>
+<button class="nav-i" data-go="inbox" style="position:relative"><svg><use href="#i-inbox"/></svg>Eingang<span class="dotn" id="railDot" hidden></span></button>
+<button class="nav-i" data-go="list"><svg><use href="#i-users"/></svg>Kunden</button>
+<button class="nav-i" data-go="send"><svg><use href="#i-send"/></svg>Versand</button>
+<div class="spacer"></div>
+<button class="nav-i" data-go="settings"><svg><use href="#i-cog"/></svg>Einstellungen</button>
+<div class="avatar" id="avatar">–</div>
+</nav>
+<div class="main">
+<header class="topbar">
+<div class="signet"><img src="/brand/clean-service-signet.png" alt="Clean Service"></div><span class="app-n">Betriebsferien UH</span>
+<button class="icon-btn" id="menuBtn" aria-label="Menü öffnen" aria-expanded="false"><svg><use href="#i-menu"/></svg></button>
+</header>
+<!-- Übersicht -->
+<section data-view="dash" class="on">
+<div class="phead">
+<svg class="wave" viewBox="0 0 560 140" preserveAspectRatio="none" aria-hidden="true"><path d="M140 140 C230 90 330 120 420 70 C480 38 520 40 560 18 L560 140 Z" fill="#9ad3d3" opacity=".45"/><path d="M280 140 C350 110 430 128 500 92 C530 78 548 76 560 70 L560 140 Z" fill="#2bb6b7" opacity=".28"/></svg>
+<div class="inner">
+<div><div class="eyebrow" id="dashEyebrow">Unterhaltsreinigung</div><h1>Übersicht</h1><p class="sub" id="dashSub"></p></div>
+<button class="btn btn-p" data-go="inbox"><svg><use href="#i-inbox"/></svg>Zum Eingang</button>
+</div>
+</div>
+<div class="content">
+<div class="dash1">
+<div class="kpis">
+<div class="card kpi"><div class="l">Kunden in der Liste</div><div class="v num" id="kKunden">0</div><div class="d muted" id="kKundenD"></div></div>
+<div class="card kpi"><div class="l">Versendet</div><div class="v num" id="kVersendet">0</div><div class="d muted" id="kVersendetD"></div></div>
+<div class="card kpi"><div class="l">Betriebsferien gemeldet</div><div class="v num" id="kFerien">0</div><div class="d up" id="kQuote"></div></div>
+<div class="card kpi"><div class="l">Ganz ohne Einsatz</div><div class="v num" id="kOhne">0</div><div class="d muted">keine Reinigung in den Ferienwochen</div></div>
+<div class="card kpi"><div class="l">Reduzierter Einsatz</div><div class="v num" id="kRed">0</div><div class="d muted">weniger Einsätze pro Woche</div></div>
+<div class="card kpi"><div class="l">Ausfallstunden</div><div class="v num" id="kStunden">0 h</div><div class="d muted">geschätzt aus Std./Woche (Excel)</div></div>
+</div>
+<div class="card gantt" style="margin-top:0">
+<div class="card-h"><h2>Betriebsferien-Kalender</h2><div class="legend"><span><i style="background:#98c2d1"></i>Kein Einsatz</span><span><i style="background:#71b6c6"></i>Reduzierter Einsatz</span></div></div>
+<div class="gwrap"><div class="gaxis"><div></div><div class="ticks" id="gticks"></div></div><div id="gantt"></div></div>
+<div class="empty" id="ganttEmpty" hidden><div class="ic"></div><b>Noch keine Betriebsferien gemeldet</b><span>Sobald Kunden antworten, erscheinen sie hier als Balken.</span></div>
+</div>
+</div>
+</div>
+</section>
+<!-- Eingang -->
+<section data-view="inbox">
+<div class="phead">
+<svg class="wave" viewBox="0 0 560 140" preserveAspectRatio="none" aria-hidden="true"><path d="M140 140 C230 90 330 120 420 70 C480 38 520 40 560 18 L560 140 Z" fill="#9ad3d3" opacity=".45"/><path d="M280 140 C350 110 430 128 500 92 C530 78 548 76 560 70 L560 140 Z" fill="#2bb6b7" opacity=".28"/></svg>
+<div class="inner">
+<div><div class="eyebrow">Unterhaltsreinigung · Rückmeldungen Betriebsferien</div><h1>Eingang</h1><p class="sub" id="inboxSub"></p></div>
+<button class="btn btn-p" id="inboxExport"><svg><use href="#i-download"/></svg>Als Excel exportieren</button>
+</div>
+</div>
+<div class="content">
+<div class="toolbar">
+<button class="chip" data-i="open" aria-pressed="true">Offen</button>
+<button class="chip" data-i="done" aria-pressed="false">Erledigt</button>
+<button class="chip" data-i="all" aria-pressed="false">Alle</button>
+<span class="muted" style="margin-left:auto;font-size:13.5px" id="inboxCount"></span>
+</div>
+<div class="card"><ul class="inb" id="inbox"></ul><div class="empty" id="inboxEmpty" hidden><div class="ic"></div><b>Nichts offen</b><span>Neue Rückmeldungen erscheinen hier automatisch.</span></div></div>
+</div>
+</section>
+<!-- Kunden -->
+<section data-view="list">
+<div class="phead">
+<svg class="wave" viewBox="0 0 560 140" preserveAspectRatio="none" aria-hidden="true"><path d="M140 140 C230 90 330 120 420 70 C480 38 520 40 560 18 L560 140 Z" fill="#9ad3d3" opacity=".45"/><path d="M280 140 C350 110 430 128 500 92 C530 78 548 76 560 70 L560 140 Z" fill="#2bb6b7" opacity=".28"/></svg>
+<div class="inner">
+<div><div class="eyebrow">Unterhaltsreinigung · Kundenliste</div><h1>Kunden</h1><p class="sub" id="listSub"></p></div>
+<button class="btn btn-p" data-go="import"><svg><use href="#i-upload"/></svg>Excel importieren</button>
+</div>
+</div>
+<div class="content">
+<div class="toolbar">
+<div class="search"><svg><use href="#i-search"/></svg><input id="q" type="search" placeholder="Kunde, Objekt, Ansprechperson suchen" aria-label="Kunden suchen"></div>
+<button class="chip" data-f="all" aria-pressed="true">Alle</button>
+<button class="chip" data-f="neu" aria-pressed="false">Noch nicht angeschrieben</button>
+<button class="chip" data-f="gewohnt" aria-pressed="false">Ohne Rückmeldung</button>
+<button class="chip" data-f="ohne" aria-pressed="false">Kein Einsatz</button>
+<button class="chip" data-f="reduziert" aria-pressed="false">Reduziert</button>
+<button class="chip" data-f="fehler" aria-pressed="false">Nicht zustellbar</button>
+</div>
+<div class="card tablewrap">
+<table><thead><tr><th>Kunde</th><th>Objekt</th><th>Ansprechperson</th><th>Status</th><th>Betriebsferien</th><th class="r">Std./Woche</th></tr></thead><tbody id="tbody"></tbody></table>
+<div class="mlist" id="mlist"></div>
+<div class="empty" id="empty" hidden><div class="ic"></div><b>Keine Kunden</b><span>Importiere zuerst die Excel-Liste mit Kunde, Objekt, Ansprechperson und E-Mail.</span></div>
+
+<div class="listfoot" id="listFoot"></div>
+</div>
+</div>
+</section>
+<!-- Import -->
+<section data-view="import">
+<div class="phead">
+<svg class="wave" viewBox="0 0 560 140" preserveAspectRatio="none" aria-hidden="true"><path d="M140 140 C230 90 330 120 420 70 C480 38 520 40 560 18 L560 140 Z" fill="#9ad3d3" opacity=".45"/><path d="M280 140 C350 110 430 128 500 92 C530 78 548 76 560 70 L560 140 Z" fill="#2bb6b7" opacity=".28"/></svg>
+<div class="inner"><div><div class="eyebrow">Kunden · Excel-Import</div><h1>Kundenliste hochladen</h1><p class="sub">Excel oder CSV mit Kunde, Objekt, Ansprechperson und E-Mail. Bestehende Kunden (gleicher Kunde + Objekt) werden aktualisiert, nicht doppelt angelegt.</p></div></div>
+</div>
+<div class="content">
+<form class="form" id="importForm" novalidate>
+<div class="card fsec">
+<h2>1. Datei</h2><p class="hint">.xlsx, .xls oder .csv, erste Zeile mit Spaltentiteln.</p>
+<label class="drop" id="drop" for="file"><div class="ic" id="dropIc"></div><b id="dropName">Datei wählen oder hierher ziehen</b><small id="dropMeta">Noch keine Datei</small><input type="file" id="file" accept=".xlsx,.xls,.csv" hidden></label>
+</div>
+<div class="card fsec" id="mapSec" hidden>
+<h2>2. Spalten zuordnen</h2><p class="hint">Automatisch erkannt. Nur anpassen, wenn eine Spalte falsch zugeordnet ist.</p>
+<div class="map" id="map"></div>
+</div>
+<div class="card fsec" id="prevSec" hidden>
+<h2>3. Vorschau</h2><p class="hint" id="prevHint"></p>
+<div class="prev"><div class="tablewrap"><table><thead><tr><th>Kunde</th><th>Objekt</th><th>Ansprechperson</th><th>E-Mail</th><th class="r">Std./Wo</th></tr></thead><tbody id="prevBody"></tbody></table></div></div>
+</div>
+<div class="errbox" id="importErr" hidden></div>
+<div class="factions"><button type="button" class="btn btn-s" data-go="list">Abbrechen</button><button type="submit" class="btn btn-p" id="importBtn" disabled><span class="ld"></span><span class="lbl2"><svg><use href="#i-upload"/></svg></span><span id="importLbl">Importieren</span></button></div>
+</form>
+</div>
+</section>
+<!-- Versand -->
+<section data-view="send">
+<div class="phead">
+<svg class="wave" viewBox="0 0 560 140" preserveAspectRatio="none" aria-hidden="true"><path d="M140 140 C230 90 330 120 420 70 C480 38 520 40 560 18 L560 140 Z" fill="#9ad3d3" opacity=".45"/><path d="M280 140 C350 110 430 128 500 92 C530 78 548 76 560 70 L560 140 Z" fill="#2bb6b7" opacity=".28"/></svg>
+<div class="inner">
+<div><div class="eyebrow">Unterhaltsreinigung · Anfrage Betriebsferien</div><h1>Versand</h1><p class="sub">Eine Anfrage an alle Ansprechpersonen. Nur wer Betriebsferien hat, meldet sich über den persönlichen Link. Absender noreply@clean-service.ch.</p></div>
+<button class="btn btn-p" id="openPrev"><svg><use href="#i-eye"/></svg>Mail-Vorschau</button>
+</div>
+</div>
+<div class="content">
+<form class="form" id="sendForm" novalidate>
+<div class="card fsec">
+<h2>1. Zeitraum</h2><p class="hint">Für diesen Zeitraum fragen wir an. Der Kunde kann innerhalb davon seine Betriebsferien eintragen.</p>
+<div class="frow">
+<div class="field"><label for="von">Von <span class="req">*</span></label><input type="date" id="von"><span class="msg">Bitte ein Startdatum wählen.</span></div>
+<div class="field"><label for="bis">Bis <span class="req">*</span></label><input type="date" id="bis"><span class="msg">Das Enddatum muss nach dem Startdatum liegen.</span></div>
+</div>
+<div class="field"><label for="frist">Antwortfrist <span class="req">*</span></label><input type="date" id="frist"><span class="msg">Bitte eine Antwortfrist wählen.</span></div>
+</div>
+<div class="card fsec">
+<h2>2. E-Mail</h2><p class="hint">Platzhalter: {Anrede}, {Ansprechperson}, {Kunde}, {Objekt}, {Von}, {Bis}, {Frist}. Der Knopf «Betriebsferien melden» mit dem persönlichen Link wird automatisch eingesetzt.</p>
+<div class="field"><label for="betreff">Betreff <span class="req">*</span></label><input type="text" id="betreff"><span class="msg">Bitte einen Betreff eingeben.</span></div>
+<div class="field"><label for="text">Nachricht <span class="req">*</span></label><textarea id="text" rows="12"></textarea><span class="msg">Bitte einen Text eingeben.</span></div>
+</div>
+<div class="card fsec">
+<h2>3. Empfänger</h2><p class="hint">Kunden, die bereits Betriebsferien gemeldet haben, erhalten keine Erinnerung.</p>
+<div class="seg" role="radiogroup" aria-label="Empfänger" id="empSeg">
+<label><input type="radio" name="emp" value="neu" checked><span id="empNeu">Noch nicht angeschrieben</span></label>
+<label><input type="radio" name="emp" value="alle"><span id="empAlle">Alle Kunden mit E-Mail</span></label>
+<label><input type="radio" name="emp" value="offen"><span id="empOffen">Erinnerung an alle ohne Rückmeldung</span></label>
+<label><input type="radio" name="emp" value="fehler"><span id="empFehler">Nur fehlgeschlagene erneut</span></label>
+</div>
+</div>
+<div class="errbox" id="sendErr" hidden></div>
+<div class="factions">
+<button type="button" class="btn btn-g" id="saveTpl">Vorlage speichern</button>
+<button type="button" class="btn btn-s" id="testmail"><svg><use href="#i-mail"/></svg>Testmail an mich</button>
+<button type="submit" class="btn btn-p" id="sendBtn"><span class="ld"></span><span class="lbl2"><svg><use href="#i-send"/></svg></span><span id="sendLbl">Senden</span></button>
+</div>
+</form>
+</div>
+</section>
+<!-- Einstellungen -->
+<section data-view="settings">
+<div class="phead">
+<svg class="wave" viewBox="0 0 560 140" preserveAspectRatio="none" aria-hidden="true"><path d="M140 140 C230 90 330 120 420 70 C480 38 520 40 560 18 L560 140 Z" fill="#9ad3d3" opacity=".45"/><path d="M280 140 C350 110 430 128 500 92 C530 78 548 76 560 70 L560 140 Z" fill="#2bb6b7" opacity=".28"/></svg>
+<div class="inner"><div><div class="eyebrow">Betriebsferien UH</div><h1>Einstellungen</h1><p class="sub">Absender, Antwortadresse, Kampagne.</p></div></div>
+</div>
+<div class="content">
+<form class="form" id="setForm" novalidate>
+<div class="card fsec">
+<h2>Absender</h2><p class="hint">Versand ab noreply@clean-service.ch (Domain bei Resend verifiziert). Antworten des Kunden laufen über den Link; Rückfragen per Mail landen auf der Antwortadresse.</p>
+<div class="frow">
+<div class="field"><label for="sName">Absendername</label><input type="text" id="sName"></div>
+<div class="field"><label for="sMail">Absenderadresse</label><input type="email" id="sMail"></div>
+</div>
+<div class="frow">
+<div class="field"><label for="sReply">Antworten gehen an</label><input type="email" id="sReply"></div>
+<div class="field"><label for="sCc">Kopie jeder Rückmeldung an</label><input type="email" id="sCc"></div>
+</div>
+<div class="field"><label for="sCamp">Kampagne</label><input type="text" id="sCamp"></div>
+</div>
+<div class="factions"><button type="submit" class="btn btn-p">Speichern</button></div>
+</form>
+<div class="card fsec" style="max-width:680px;margin-top:16px">
+<h2>Angemeldet</h2><p class="hint" id="whoami"></p>
+<button type="button" class="btn btn-s" id="logout">Abmelden</button>
+</div>
+</div>
+</section>
+</div>
+</div>
+<div class="scrim" id="scrim"></div>
+<aside class="panel" id="panel" role="dialog" aria-modal="true" aria-labelledby="pTitle" aria-hidden="true">
+<div class="panel-h"><div><h2 id="pTitle">Kunde</h2><div id="pBadge" style="margin-top:6px"></div></div><button class="icon-btn" id="pClose" aria-label="Schliessen"><svg><use href="#i-x"/></svg></button></div>
+<div class="panel-b"><div class="pfprev"><button type="button" class="btn btn-s" id="pPrevMail"><svg><use href="#i-mail"/></svg>Mail-Vorschau</button><button type="button" class="btn btn-s" id="pPrevCust"><svg><use href="#i-eye"/></svg>Kundenansicht</button></div><dl class="dl" id="pDl"></dl><div class="sec-t">Rückmeldung</div><div id="pAnswer"></div><div class="sec-t">Verlauf</div><ul class="timeline" id="pTl"></ul></div>
+<div class="panel-f" id="pF"></div>
+</aside>
+<div class="scrim" id="dscrim"></div>
+<nav class="drawer" id="drawer" aria-label="Menü" aria-hidden="true">
+<div class="dh"><img class="logo-full" src="/brand/clean-service-logo.png" alt="Clean Service by Scaramuzzo"><button class="icon-btn" id="drawerClose" aria-label="Menü schliessen"><svg><use href="#i-x"/></svg></button></div>
+<button class="dnav" data-go="dash" aria-current="page"><svg><use href="#i-home"/></svg>Übersicht</button>
+<button class="dnav" data-go="inbox"><svg><use href="#i-inbox"/></svg>Eingang <span class="badge b-warn" id="drawerCnt" style="margin-left:auto" hidden></span></button>
+<button class="dnav" data-go="list"><svg><use href="#i-users"/></svg>Kunden</button>
+<button class="dnav" data-go="send"><svg><use href="#i-send"/></svg>Versand</button>
+<button class="dnav" data-go="settings"><svg><use href="#i-cog"/></svg>Einstellungen</button>
+</nav>
+<!-- Mail-Vorschau -->
+<div class="kprev" id="kprev" role="dialog" aria-modal="true" aria-label="Mail-Vorschau" aria-hidden="true">
+<div class="kbar pvbar"><div class="pvseg" role="group" aria-label="Ansicht"><button type="button" data-pv="mail" aria-pressed="true">E-Mail</button><button type="button" data-pv="kunde" aria-pressed="false">Kundenansicht</button></div>
+<select id="kSel" class="pvsel" aria-label="Kunde für die Vorschau"></select>
+<div class="pvseg pvdev" role="group" aria-label="Gerät"><button type="button" data-dev="desk" aria-pressed="true">Desktop</button><button type="button" data-dev="phone" aria-pressed="false">Handy</button></div>
+<span id="kbarTx" class="pvtx"></span><button class="icon-btn" id="kClose" aria-label="Vorschau schliessen"><svg><use href="#i-x"/></svg></button></div>
+<div class="kpage pvpage" id="kpage"><iframe class="mailframe" id="mailframe" title="Mail-Vorschau"></iframe><iframe class="mailframe custframe" id="custframe" title="Kundenansicht" hidden></iframe></div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"><div class="ic" id="toastIc"></div><span id="toastTx"></span></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="/cs-lottie.js"></script>
+<script src="/admin.js"></script>
+</body>
+</html>

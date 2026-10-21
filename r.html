@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Betriebsferien melden · Clean Service</title>
+<link rel="icon" href="/brand/clean-service-signet.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="/app.css">
+<style>
+body{background:#f6fafb}
+.kpage{max-width:640px;margin:0 auto;padding-block:28px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.kpage .klogo{width:170px;height:auto;display:block;margin-bottom:26px}
+.kpage .kh{position:relative;overflow:hidden;background:var(--cs-head);border-radius:16px;padding:22px 22px 20px;margin-bottom:18px}
+.kpage .kh h1{font-weight:300;text-transform:uppercase;letter-spacing:.08em;font-size:clamp(22px,4vw,30px);line-height:1.15;color:var(--cs-brand-text);position:relative;z-index:1}
+.kpage .kh p{position:relative;z-index:1;margin-top:8px;color:var(--cs-fg-2);font-size:14.5px}
+.kpage .kh .wave{width:70%}
+.kthanks{display:grid;justify-items:center;text-align:center;gap:8px;padding:30px 10px}
+.kthanks .ic{width:120px;height:120px}
+.kthanks h2{font-family:var(--cs-font);font-size:20px;font-weight:600}
+.tsum{width:100%;max-width:440px;text-align:left;border:1px solid var(--cs-line);border-radius:12px;overflow:hidden;margin:6px 0 4px}
+.tsum .tp{background:var(--cs-head);padding:14px 16px}
+.tsum .tp small{display:block;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--cs-fg-2);margin-bottom:2px}
+.tsum .tp b{font-size:17px;font-weight:600;color:var(--cs-fg)}
+.tsum .tp span{display:block;font-size:13.5px;color:var(--cs-fg-2);margin-top:2px}
+.tsum .tw{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 16px;border-top:1px solid var(--cs-line);font-size:14.5px}
+.tsum .tw .kw b{display:block;font-weight:600}
+.tsum .tw .kw span{font-size:12.5px;color:var(--cs-fg-2)}
+.tsum .tag{flex:none;font-size:13px;font-weight:600;padding:4px 10px;border-radius:999px;background:#eef1f2;color:#3c3c3b}
+.tsum .tag.red{background:#e3f2f2;color:#1b8384}
+.tsum .tn{padding:11px 16px;border-top:1px solid var(--cs-line);font-size:14px;color:var(--cs-fg-2)}
+.tmail{font-size:13.5px;color:var(--cs-fg-2)}
+.errbox{background:var(--cs-err-bg);border:1px solid rgba(200,85,75,.35);border-radius:10px;padding:12px 14px;font-size:14px;margin-bottom:14px}
+.loading{display:grid;justify-items:center;gap:8px;padding:40px;color:var(--cs-fg-2)}
+.loading .ic{width:56px;height:56px}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M4 11l8-7 8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5"/><path d="M16 4.8a3.3 3.3 0 0 1 0 6.4M18 14.8c1.9.7 3.1 2.4 3.5 5.2"/></g></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3.5" y="3.5" width="17" height="17" rx="4"/><path d="M12 8v8M8 12h8"/></g></symbol>
+    <symbol id="i-cal" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></g></symbol>
+    <symbol id="i-cog" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2.8v2.4M12 18.8v2.4M4.2 7.5l2 1.2M17.8 15.3l2 1.2M4.2 16.5l2-1.2M17.8 8.7l2-1.2"/></g></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></g></symbol>
+    <symbol id="i-chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-ok" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-send" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 11.5L20 4l-4.5 16-4.2-6.3z"/><path d="M11.3 13.7L20 4"/></g></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V5M7.5 9.5L12 5l4.5 4.5"/><path d="M4 15.5v2.5a1.5 1.5 0 0 0 1.5 1.5h13a1.5 1.5 0 0 0 1.5-1.5v-2.5"/></g></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5.5" width="17" height="13" rx="3"/><path d="M4 7l8 6 8-6"/></g></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="8.5" y="8.5" width="11" height="11" rx="2.5"/><path d="M15.5 8.5V6a1.5 1.5 0 0 0-1.5-1.5H6A1.5 1.5 0 0 0 4.5 6v8A1.5 1.5 0 0 0 6 15.5h2.5"/></g></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></g></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12s3.5-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.5 6.5-9.5 6.5S2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></g></symbol>
+    <symbol id="i-edit" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l11-11-4-4L4 16z"/><path d="M13 7l4 4"/></g></symbol>
+    <symbol id="i-inbox" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 13h4.5l1.5 2.5h5l1.5-2.5h4.5"/><path d="M5.5 5.5h13l2 7.5v5a1.5 1.5 0 0 1-1.5 1.5h-14A1.5 1.5 0 0 1 3.5 18v-5z"/></g></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v11M7.5 11.5L12 16l4.5-4.5"/><path d="M4 15.5v2.5a1.5 1.5 0 0 0 1.5 1.5h13a1.5 1.5 0 0 0 1.5-1.5v-2.5"/></g></symbol>
+  </defs>
+</svg>
+<div class="kpage">
+  <img class="klogo" src="/brand/clean-service-logo.png" alt="Clean Service by Scaramuzzo">
+  <div class="kh">
+    <svg class="wave" viewBox="0 0 560 140" preserveAspectRatio="none" aria-hidden="true"><path d="M140 140 C230 90 330 120 420 70 C480 38 520 40 560 18 L560 140 Z" fill="#9ad3d3" opacity=".45"/><path d="M280 140 C350 110 430 128 500 92 C530 78 548 76 560 70 L560 140 Z" fill="#2bb6b7" opacity=".28"/></svg>
+    <h1 id="hTitle">Betriebsferien über Weihnachten und Neujahr</h1>
+    <p id="hSub">Wird geladen …</p>
+  </div>
+
+  <div class="loading" id="loading"><div class="ic" id="loadIc"></div><span>Ihre Angaben werden geladen …</span></div>
+  <div class="card" id="invalid" hidden style="padding:22px"><b>Dieser Link ist ungültig.</b><p class="muted" style="margin-top:6px">Bitte verwenden Sie den Link aus unserer E-Mail oder melden Sie sich unter T 0844 355 355.</p></div>
+
+  <form id="kform" novalidate hidden>
+    <div class="card fsec">
+      <h2>1. Ihre Betriebsferien</h2>
+      <p class="hint" id="hint1"></p>
+      <div class="field" id="kcalField"><label>Tippen Sie auf den ersten und den letzten Ferientag <span class="req">*</span></label>
+        <div class="cal" id="kcal"></div>
+        <div class="calsum" id="kcalsum"></div>
+        <span class="msg">Bitte den ersten und den letzten Ferientag im Kalender antippen.</span>
+      </div>
+    </div>
+    <div class="card fsec" id="kWeeks">
+      <h2>2. Einsatz in den betroffenen Kalenderwochen</h2>
+      <p class="hint">Wählen Sie für jede Woche, ob in dieser Zeit gereinigt werden soll.</p>
+      <div id="kweeks" class="weeks"></div>
+      <div class="field" style="margin-top:14px"><label for="knote">Bemerkung (optional)</label><textarea id="knote" rows="2" placeholder="z. B. gewünschte Wochentage für den reduzierten Einsatz"></textarea></div>
+    </div>
+    <div class="card" style="padding:14px 18px;margin-bottom:16px;background:var(--cs-head);border-color:var(--cs-line)" id="ksum"></div>
+    <div class="errbox" id="kerr" hidden></div>
+    <div class="factions">
+      <button type="submit" class="btn btn-p"><span class="ld"></span><span class="lbl2"><svg><use href="#i-ok"/></svg></span><span id="submitLbl">Betriebsferien melden</span></button>
+    </div>
+  </form>
+
+  <div class="card kthanks" id="kthanks" hidden>
+    <div class="ic" id="kthanksIc"></div>
+    <h2>Herzlichen Dank, Ihre Betriebsferien sind erfasst.</h2>
+    <p class="muted" style="margin-bottom:6px">Wir planen Ihre Reinigung entsprechend.</p>
+    <div class="tsum" id="kthanksSum"></div>
+    <p class="tmail" id="kthanksTx"></p>
+    <button type="button" class="btn btn-s" id="kAgain" style="margin-top:4px">Angaben anpassen</button>
+  </div>
+  <p class="muted" style="font-size:12.5px;margin-top:28px;text-align:center">Clean Service Scaramuzzo AG · Industriestrasse 5 · 8307 Effretikon · T 0844 355 355</p>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+<script src="/cs-lottie.js"></script>
+<script>
+(function(){
+  const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+  const ic=(el,key)=>{ if(!el||!window.lottie||!window.CS_LOTTIE) return null; el.innerHTML=''; try{return CS_LOTTIE.play(el,key);}catch(e){return null;} };
+  const DAY=86400000, MON=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+  const parse=v=>{ if(!v) return null; const [y,m,d]=String(v).slice(0,10).split('-').map(Number); return isNaN(y)?null:new Date(y,m-1,d); };
+  const iso=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const fmt=d=>`${d.getDate()}. ${MON[d.getMonth()]}`;
+  const fmtK=d=>d.toLocaleDateString('de-CH',{day:'numeric',month:'short'});
+  const token=(location.pathname.match(/\/r\/([a-f0-9]+)/i)||[])[1]||new URLSearchParams(location.search).get('t')||'';
+
+  const PV=new URLSearchParams(location.search).has('pv');
+  let D=null, P0=null, P1=null, MIN=null, MAX=null, selA=null, selB=null, picking=false;
+  ic($('#loadIc'),'loader');
+
+  async function load(){
+    try{
+      let j; if(PV){ j=window.parent&&window.parent.__bfPv; if(!j) throw new Error('Vorschau'); } else { const r=await fetch('/api/r?t='+encodeURIComponent(token)); j=await r.json(); if(!r.ok) throw new Error(j.error||'Fehler'); }
+      D=j; P0=parse(j.period_from); P1=parse(j.period_to);
+      MIN=new Date(P0.getFullYear(),P0.getMonth(),1); MAX=new Date(P1.getFullYear(),P1.getMonth()+1,0);
+      $('#hSub').textContent=[j.kunde,j.objekt,'Unterhaltsreinigung'].filter(Boolean).join(' · ');
+      $('#hint1').textContent=`Bitte nur ausfüllen, wenn Ihr Betrieb zwischen dem ${fmt(P0)} ${P0.getFullYear()} und dem ${fmt(P1)} ${P1.getFullYear()} geschlossen ist und Sie weniger oder keine Reinigung wünschen. Ohne Rückmeldung reinigen wir wie gewohnt. Erster Tipp = erster Ferientag, zweiter Tipp = letzter Ferientag.`;
+      if(j.response){ selA=parse(j.response.von); selB=parse(j.response.bis); $('#submitLbl').textContent='Betriebsferien aktualisieren'; }
+      $('#loading').hidden=true; $('#kform').hidden=false;
+      renderCal(); renderWeeks(j.response?j.response.weeks:null); if(j.response&&j.response.note) $('#knote').value=j.response.note; summary();
+    }catch(e){ $('#loading').hidden=true; $('#invalid').hidden=false; $('#hSub').textContent='Unterhaltsreinigung'; }
+  }
+
+  function renderCal(){
+    const months=[]; for(let d=new Date(MIN);d<=MAX;d=new Date(d.getFullYear(),d.getMonth()+1,1)) months.push([d.getFullYear(),d.getMonth()]);
+    $('#kcal').innerHTML=months.map(([y,m])=>{
+      const first=new Date(y,m,1), off=(first.getDay()+6)%7, days=new Date(y,m+1,0).getDate();
+      let cells=['Mo','Di','Mi','Do','Fr','Sa','So'].map(h=>`<div class="dh">${h}</div>`).join('');
+      for(let i=0;i<off;i++) cells+='<button type="button" class="d out" tabindex="-1" aria-hidden="true"></button>';
+      for(let d=1;d<=days;d++){const dt=new Date(y,m,d); const cls=['d'];
+        if(selA&&selB&&dt>=selA&&dt<=selB) cls.push('rg');
+        if(selA&&+dt===+selA) cls.push('a'); if(selB&&+dt===+selB) cls.push('b');
+        if(selA&&!selB&&+dt===+selA) cls.push('a','b');
+        cells+=`<button type="button" class="${cls.join(' ')}" data-d="${iso(dt)}" aria-label="${dt.toLocaleDateString('de-CH',{weekday:'long',day:'numeric',month:'long'})}">${d}</button>`;}
+      return `<div class="mon"><div class="mt">${MON[m]} ${y}</div><div class="grid">${cells}</div></div>`;}).join('');
+    $$('#kcal .d[data-d]').forEach(b=>b.addEventListener('click',()=>{
+      const dt=parse(b.dataset.d);
+      if(!picking||!selA){selA=dt;selB=null;picking=true;}
+      else { if(dt<selA){selB=selA;selA=dt;} else selB=dt; picking=false; }
+      $('#kcalField').classList.remove('err'); renderCal(); renderWeeks(); summary();
+    }));
+    const sum=$('#kcalsum');
+    if(selA&&selB){const n=Math.round((selB-selA)/DAY)+1; sum.innerHTML=`<span><b>Betriebsferien:</b> ${fmt(selA)} – ${fmt(selB)} · ${n} Tage</span>`;}
+    else if(selA) sum.innerHTML=`<span><b>Erster Ferientag:</b> ${fmt(selA)} · jetzt den letzten Ferientag antippen</span>`;
+    else sum.innerHTML=`<span>Bitte den ersten Ferientag antippen.</span>`;
+  }
+  function isoWeeks(a,b){ const out=[]; let m=new Date(a); m.setDate(m.getDate()-((m.getDay()+6)%7));
+    for(;m<=b;m=new Date(m.getTime()+7*DAY)){const s=new Date(m), e=new Date(m.getTime()+6*DAY); const t=new Date(s.getTime()+3*DAY); const y0=new Date(t.getFullYear(),0,4); const kw=1+Math.round(((t-y0)/DAY-3+((y0.getDay()+6)%7))/7); out.push({kw,a:s,b:e});} return out; }
+  function renderWeeks(prev){
+    const box=$('#kweeks');
+    if(!selA||!selB){box.innerHTML='<p class="muted">Sobald Sie im Kalender den ersten und den letzten Ferientag angetippt haben, erscheinen hier die betroffenen Kalenderwochen.</p>';return;}
+    const weeks=isoWeeks(selA,selB);
+    box.innerHTML=weeks.map(w=>{
+      let ft=0; for(let d=new Date(w.a);d<=w.b;d=new Date(d.getTime()+DAY)) if(d>=selA&&d<=selB) ft++;
+      const def=prev&&prev[w.kw]!==undefined?+prev[w.kw]:0;
+      const opts=[0,1,2,3].map(v=>`<label><input type="radio" name="w${w.kw}" value="${v}" ${v===def?'checked':''}><span>${v===0?'Kein Einsatz':v+'× reduziert'}</span></label>`);
+      return `<div class="wk ${def===0?'none':''}" data-kw="${w.kw}"><div class="wh"><b>KW ${w.kw}</b><span>${fmtK(w.a)} – ${fmtK(w.b)} · ${ft===7?'ganze Woche geschlossen':ft+' Ferientag'+(ft>1?'e':'')}</span></div>
+        <div class="seg" role="radiogroup" aria-label="Einsatz KW ${w.kw}">${opts.join('')}</div>
+        <div class="wn">«Reduziert» nur für Kunden mit mehreren Reinigungen pro Woche.</div></div>`;
+    }).join('');
+    $$('#kweeks input[type=radio]').forEach(r=>r.addEventListener('change',()=>{r.closest('.wk').classList.toggle('none',r.value==='0');summary();}));
+  }
+  function weeksValue(){ const o={}; $$('#kweeks .wk').forEach(w=>{o[w.dataset.kw]=+w.querySelector('input:checked').value;}); return o; }
+  function summary(){ const el=$('#ksum'); if(!selA||!selB){el.innerHTML='';el.hidden=true;return;} el.hidden=false;
+    const parts=Object.entries(weeksValue()).map(([kw,v])=>`KW ${kw}: ${v===0?'kein Einsatz':v+'× reduziert'}`);
+    el.innerHTML=`<div style="font-size:14px"><b>Ihre Meldung:</b> Betriebsferien ${fmt(selA)} – ${fmt(selB)} · ${parts.join(' · ')}</div>`; }
+
+  $('#kform').addEventListener('submit',async e=>{
+    e.preventDefault(); $('#kerr').hidden=true;
+    const okCal=!!(selA&&selB); $('#kcalField').classList.toggle('err',!okCal);
+    if(!okCal){ $('#kcal').scrollIntoView({behavior:'smooth',block:'center'}); return; }
+    const btn=e.target.querySelector('.btn-p'); btn.classList.add('busy'); btn.disabled=true; const a=ic(btn.querySelector('.ld'),'loader');
+    try{
+      if(PV){ await new Promise(x=>setTimeout(x,400)); }
+      const r=PV?{ok:true,json:async()=>({ok:true,email:D.email})}:await fetch('/api/r?t='+encodeURIComponent(token),{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({von:iso(selA),bis:iso(selB),weeks:weeksValue(),note:$('#knote').value})});
+      const j=await r.json(); if(!r.ok) throw new Error(j.error||'Fehler beim Speichern');
+      { const wv=weeksValue(), wk=isoWeeks(selA,selB), n=Math.round((selB-selA)/DAY)+1, esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
+        const note=$('#knote').value.trim();
+        $('#kthanksSum').innerHTML=`<div class="tp"><small>Ihre Betriebsferien</small><b>${fmt(selA)} ${selA.getFullYear()!==selB.getFullYear()?selA.getFullYear()+' ':''}– ${fmt(selB)} ${selB.getFullYear()}</b><span>${n} Tage</span></div>`
+          + wk.map(w=>{const v=+wv[w.kw]; return `<div class="tw"><div class="kw"><b>KW ${w.kw}</b><span>${fmtK(w.a)} – ${fmtK(w.b)}</span></div><span class="tag ${v?'red':''}">${v===0?'Kein Einsatz':v+'× reduziert'}</span></div>`;}).join('')
+          + (note?`<div class="tn"><b style="color:var(--cs-fg)">Bemerkung:</b> ${esc(note)}</div>`:'');
+        $('#kthanksTx').textContent=(j.email?'Eine Bestätigung geht an '+j.email+'.':'')+(PV?' Vorschau: nichts gespeichert, keine Mail versendet.':''); }
+      $('#kform').hidden=true; $('#kthanks').hidden=false; ic($('#kthanksIc'),'check'); window.scrollTo({top:0,behavior:'smooth'});
+      $('#submitLbl').textContent='Betriebsferien aktualisieren';
+    }catch(err){ $('#kerr').textContent=err.message+' Bitte versuchen Sie es erneut oder melden Sie sich unter T 0844 355 355.'; $('#kerr').hidden=false; }
+    finally{ if(a)a.destroy(); btn.classList.remove('busy'); btn.disabled=false; }
+  });
+  $('#kAgain').addEventListener('click',()=>{$('#kform').hidden=false;$('#kthanks').hidden=true;});
+  load();
+})();
+</script>
+</body>
+</html>
