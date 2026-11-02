@@ -3,19 +3,17 @@
 const L = require('./_lib');
 
 function text(c, r, { update = false, manual = false } = {}) {
-  const weeks = r.weeks || {};
+  const weeks = r.weeks || {}, ers = r.ersatz || [];
   const wr = L.weekRanges(r.von, r.bis);
-  const lines = Object.keys(weeks).sort((a, b) => +a - +b).map(kw => `Betriebsferien KW ${kw}${wr[kw] ? ' (' + wr[kw] + ')' : ''}: ${+weeks[kw] === 0 ? 'kein Einsatz' : weeks[kw] + '× reduziert'}`);
-  return [
-    update ? 'Betriebsferien geändert' : 'Betriebsferien gemeldet' + (manual ? ' (telefonisch)' : ''),
-    '',
-    c.kunde,
-    c.objekt || '',
-    '',
-    `Betriebsferien: ${L.fmtShort(r.von)} – ${L.fmtShort(r.bis)}`,
-    ...lines,
-    r.note ? `Bemerkung: ${String(r.note).trim()}` : ''
-  ].filter((x, i, a) => x !== '' || (a[i - 1] !== '' && i > 0)).join('\n').trim();
+  const lines = [];
+  if (r.von) {
+    lines.push(`Betriebsferien: ${L.fmtShort(r.von)} – ${L.fmtShort(r.bis)}`);
+    Object.keys(weeks).sort((a, b) => +a - +b).forEach(kw => lines.push(`Betriebsferien KW ${kw}${wr[kw] ? ' (' + wr[kw] + ')' : ''}: ${+weeks[kw] === 0 ? 'kein Einsatz' : weeks[kw] + '× reduziert'}`));
+  }
+  ers.forEach(x => lines.push(`Feiertag ${x.name} ${L.fmtDay(x.tag)}: Ersatzreinigung am ${L.fmtDay(x.ersatz)} (${x.ersatz < x.tag ? 'vorholen' : 'nachholen'})`));
+  if (r.note) lines.push(`Bemerkung: ${String(r.note).trim()}`);
+  const title = (r.von && ers.length ? 'Betriebsferien und Ersatztermin' : r.von ? 'Betriebsferien' : 'Ersatztermin Feiertag') + (update ? ' geändert' : ' gemeldet') + (manual ? ' (telefonisch)' : '');
+  return [title, '', c.kunde, c.objekt || '', '', ...lines].join('\n').replace(/\n{3,}/g, '\n\n').trim();
 }
 
 const BASE = () => String(process.env.BEEKEEPER_URL || '').replace(/\/+$/, '').replace(/^(?!https?:\/\/)/, 'https://');

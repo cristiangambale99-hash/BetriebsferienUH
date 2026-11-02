@@ -31,6 +31,21 @@ body{background:#f6fafb}
 .tsum .tag.red{background:#e3f2f2;color:#1b8384}
 .tsum .tn{padding:11px 16px;border-top:1px solid var(--cs-line);font-size:14px;color:var(--cs-fg-2)}
 .tmail{font-size:13.5px;color:var(--cs-fg-2)}
+
+.pick{display:grid;gap:10px}.pk{display:flex;gap:12px;align-items:flex-start;border:1.5px solid var(--cs-line-strong);border-radius:12px;padding:14px;cursor:pointer;background:#fff;-webkit-tap-highlight-color:transparent}
+.pk input{position:absolute;opacity:0;pointer-events:none}.pk:has(input:checked){border-color:#1b8384;background:#eef7f7}.pk:has(input:focus-visible){outline:2px solid #1b8384;outline-offset:2px}
+.box{flex:none;width:22px;height:22px;border-radius:6px;border:1.5px solid #9fb4b8;display:grid;place-items:center;margin-top:1px;background:#fff}
+input:checked+.box{background:#1b8384;border-color:#1b8384}input:checked+.box:after{content:"";width:10px;height:6px;border:2px solid #fff;border-top:0;border-right:0;transform:rotate(-45deg) translate(1px,-1px)}
+.pk b{display:block;font-size:15px;font-weight:600}.pk small{display:block;font-size:13.5px;color:var(--cs-fg-2);margin-top:2px;line-height:1.4}
+.std{font-size:13px;color:var(--cs-fg-2);border:1px dashed var(--cs-line-strong);border-radius:10px;padding:10px 12px;margin-top:12px;line-height:1.45}
+.pmsg{display:block;color:#b3261e;font-size:13.5px;margin-top:8px}
+.ft{border:1.5px solid var(--cs-line-strong);border-radius:12px;padding:12px 14px;margin-bottom:10px;background:#fff}.ft:has(.fchk:checked){border-color:#1b8384}
+.ft .row{display:flex;gap:12px;align-items:center;cursor:pointer}.ft .row input{position:absolute;opacity:0;pointer-events:none}.ft .row b{font-size:15px;font-weight:600}.ft .row .nm{font-size:13px;color:var(--cs-fg-2);margin-left:auto}
+.ers{margin-top:12px;padding-top:12px;border-top:1px solid var(--cs-line)}.ers p{font-size:13px;color:var(--cs-fg-2);margin-bottom:8px}
+.dchips{display:flex;flex-wrap:wrap;gap:6px}.dchips button{border:1px solid var(--cs-line-strong);border-radius:999px;padding:6px 12px;font:500 13.5px var(--cs-font);background:#fff;color:var(--cs-fg);cursor:pointer;line-height:1.25;text-align:left;min-height:44px}
+.dchips button small{display:block;font-size:11px;opacity:.75}.dchips button[aria-pressed=true]{background:#1b8384;border-color:#1b8384;color:#fff}
+.dchips input[type=date]{height:44px;border:1px solid var(--cs-line-strong);border-radius:999px;padding:0 12px;font:500 13.5px var(--cs-font);color:var(--cs-fg)}
+.ft.err{border-color:#b3261e}
 .errbox{background:var(--cs-err-bg);border:1px solid rgba(200,85,75,.35);border-radius:10px;padding:12px 14px;font-size:14px;margin-bottom:14px}
 .loading{display:grid;justify-items:center;gap:8px;padding:40px;color:var(--cs-fg-2)}
 .loading .ic{width:56px;height:56px}
@@ -64,7 +79,7 @@ body{background:#f6fafb}
   <img class="klogo" src="/brand/clean-service-logo.png" alt="Clean Service by Scaramuzzo">
   <div class="kh">
     <svg class="wave" viewBox="0 0 560 140" preserveAspectRatio="none" aria-hidden="true"><path d="M140 140 C230 90 330 120 420 70 C480 38 520 40 560 18 L560 140 Z" fill="#9ad3d3" opacity=".45"/><path d="M280 140 C350 110 430 128 500 92 C530 78 548 76 560 70 L560 140 Z" fill="#2bb6b7" opacity=".28"/></svg>
-    <h1 id="hTitle">Betriebsferien über Weihnachten und Neujahr</h1>
+    <h1 id="hTitle">Betriebsferien und Feiertage</h1>
     <p id="hSub">Wird geladen …</p>
   </div>
 
@@ -73,7 +88,18 @@ body{background:#f6fafb}
 
   <form id="kform" novalidate hidden>
     <div class="card fsec">
-      <h2>1. Ihre Betriebsferien</h2>
+      <h2>Was möchten Sie uns mitteilen?</h2>
+      <p class="hint">Sie können eines oder beides wählen.</p>
+      <div class="pick" id="pickBox">
+        <label class="pk" id="pkBF"><input type="checkbox" id="chkBF"><span class="box"></span><span><b>Betriebsferien</b><small>Unser Betrieb ist geschlossen und wir wünschen weniger oder keine Reinigung.</small></span></label>
+        <label class="pk" id="pkFT"><input type="checkbox" id="chkFT"><span class="box"></span><span><b>Ersatztermin für einen Feiertag</b><small>Ein Feiertag fällt auf unseren Reinigungstag und wir möchten die Reinigung vor- oder nachholen.</small></span></label>
+      </div>
+      <div class="std"><b>Ohne Rückmeldung</b> reinigen wir wie gewohnt. An gesetzlichen Feiertagen findet keine Reinigung statt.</div>
+      <span class="msg pmsg" id="pickMsg" hidden>Bitte wählen Sie mindestens eine Möglichkeit.</span>
+    </div>
+    <div id="secBF" hidden>
+    <div class="card fsec">
+      <h2>Ihre Betriebsferien</h2>
       <p class="hint" id="hint1"></p>
       <div class="field" id="kcalField"><label>Tippen Sie auf den ersten und den letzten Ferientag <span class="req">*</span></label>
         <div class="cal" id="kcal"></div>
@@ -82,21 +108,30 @@ body{background:#f6fafb}
       </div>
     </div>
     <div class="card fsec" id="kWeeks">
-      <h2>2. Einsatz in den betroffenen Kalenderwochen</h2>
+      <h2>Einsatz in den betroffenen Kalenderwochen</h2>
       <p class="hint">Wählen Sie für jede Woche, ob in dieser Zeit gereinigt werden soll.</p>
       <div id="kweeks" class="weeks"></div>
-      <div class="field" style="margin-top:14px"><label for="knote">Bemerkung (optional)</label><textarea id="knote" rows="2" placeholder="z. B. gewünschte Wochentage für den reduzierten Einsatz"></textarea></div>
     </div>
-    <div class="card" style="padding:14px 18px;margin-bottom:16px;background:var(--cs-head);border-color:var(--cs-line)" id="ksum"></div>
+    </div>
+    <div class="card fsec" id="secFT" hidden>
+      <h2>Feiertage mit Ersatztermin</h2>
+      <p class="hint">Wählen Sie nur die Feiertage, an denen wir normalerweise bei Ihnen reinigen, und tippen Sie den gewünschten Ersatztag an.</p>
+      <div id="ftList"></div>
+      <span class="msg pmsg" id="ftMsg" hidden>Bitte wählen Sie für jeden angehakten Feiertag einen Ersatztag.</span>
+    </div>
+    <div class="card fsec" id="secNote" hidden>
+      <div class="field" style="margin:0"><label for="knote">Bemerkung (optional)</label><textarea id="knote" rows="2" placeholder="z. B. gewünschte Uhrzeit oder Wochentage"></textarea></div>
+    </div>
+    <div class="card" style="padding:14px 18px;margin-bottom:16px;background:var(--cs-head);border-color:var(--cs-line)" id="ksum" hidden></div>
     <div class="errbox" id="kerr" hidden></div>
     <div class="factions">
-      <button type="submit" class="btn btn-p"><span class="ld"></span><span class="lbl2"><svg><use href="#i-ok"/></svg></span><span id="submitLbl">Betriebsferien melden</span></button>
+      <button type="submit" class="btn btn-p"><span class="ld"></span><span class="lbl2"><svg><use href="#i-ok"/></svg></span><span id="submitLbl">Angaben senden</span></button>
     </div>
   </form>
 
   <div class="card kthanks" id="kthanks" hidden>
     <div class="ic" id="kthanksIc"></div>
-    <h2>Herzlichen Dank, Ihre Betriebsferien sind erfasst.</h2>
+    <h2 id="kthanksH">Herzlichen Dank, Ihre Angaben sind erfasst.</h2>
     <p class="muted" style="margin-bottom:6px">Wir planen Ihre Reinigung entsprechend.</p>
     <div class="tsum" id="kthanksSum"></div>
     <p class="tmail" id="kthanksTx"></p>
@@ -120,6 +155,7 @@ body{background:#f6fafb}
 
   const PV=new URLSearchParams(location.search).has('pv');
   const TE=new URLSearchParams(location.search).get('e'), TQ=TE?'&e='+encodeURIComponent(TE):'';
+  let FT={}, HOL=[];
   let D=null, P0=null, P1=null, MIN=null, MAX=null, selA=null, selB=null, picking=false;
   ic($('#loadIc'),'loader');
 
@@ -129,10 +165,13 @@ body{background:#f6fafb}
       D=j; P0=parse(j.period_from); P1=parse(j.period_to);
       MIN=new Date(P0.getFullYear(),P0.getMonth(),1); MAX=new Date(P1.getFullYear(),P1.getMonth()+1,0);
       $('#hSub').textContent=[j.kunde,j.objekt,'Unterhaltsreinigung'].filter(Boolean).join(' · ');
-      $('#hint1').textContent=`Bitte nur ausfüllen, wenn Ihr Betrieb zwischen dem ${fmt(P0)} ${P0.getFullYear()} und dem ${fmt(P1)} ${P1.getFullYear()} geschlossen ist und Sie weniger oder keine Reinigung wünschen. Ohne Rückmeldung reinigen wir wie gewohnt. Erster Tipp = erster Ferientag, zweiter Tipp = letzter Ferientag.`;
-      if(j.response){ selA=parse(j.response.von); selB=parse(j.response.bis); $('#submitLbl').textContent='Betriebsferien aktualisieren'; }
+      $('#hint1').textContent=`Zeitraum ${fmt(P0)} ${P0.getFullYear()} bis ${fmt(P1)} ${P1.getFullYear()}. Erster Tipp = erster Ferientag, zweiter Tipp = letzter Ferientag.`;
+      HOL=j.holidays||[];
+      if(j.response){ selA=parse(j.response.von); selB=parse(j.response.bis); (j.response.ersatz||[]).forEach(x=>FT[x.tag]=x.ersatz); $('#submitLbl').textContent='Angaben aktualisieren';
+        $('#chkBF').checked=!!j.response.von; $('#chkFT').checked=(j.response.ersatz||[]).length>0; }
+      if(!HOL.length) $('#pkFT').hidden=true;
       $('#loading').hidden=true; $('#kform').hidden=false;
-      renderCal(); renderWeeks(j.response?j.response.weeks:null); if(j.response&&j.response.note) $('#knote').value=j.response.note; summary();
+      renderCal(); renderWeeks(j.response?j.response.weeks:null); renderFT(); if(j.response&&j.response.note) $('#knote').value=j.response.note; sections(); summary();
     }catch(e){ $('#loading').hidden=true; $('#invalid').hidden=false; $('#hSub').textContent='Unterhaltsreinigung'; }
   }
 
@@ -176,27 +215,61 @@ body{background:#f6fafb}
     $$('#kweeks input[type=radio]').forEach(r=>r.addEventListener('change',()=>{r.closest('.wk').classList.toggle('none',r.value==='0');summary();}));
   }
   function weeksValue(){ const o={}; $$('#kweeks .wk').forEach(w=>{o[w.dataset.kw]=+w.querySelector('input:checked').value;}); return o; }
-  function summary(){ const el=$('#ksum'); if(!selA||!selB){el.innerHTML='';el.hidden=true;return;} el.hidden=false;
-    const parts=Object.entries(weeksValue()).map(([kw,v])=>`KW ${kw}: ${v===0?'kein Einsatz':v+'× reduziert'}`);
-    el.innerHTML=`<div style="font-size:14px"><b>Ihre Meldung:</b> Betriebsferien ${fmt(selA)} – ${fmt(selB)} · ${parts.join(' · ')}</div>`; }
+  const WDN=['So','Mo','Di','Mi','Do','Fr','Sa'];
+  const fD=d=>`${WDN[d.getDay()]} ${d.getDate()}.${d.getMonth()+1}.`;
+  const isHol=d=>HOL.some(h=>h.tag===iso(d));
+  function workdays(from,dir,n){ const out=[]; let d=new Date(from); while(out.length<n){ d=new Date(d.getFullYear(),d.getMonth(),d.getDate()+dir); const w=d.getDay(); if(w>0&&w<6&&!isHol(d)) out.push(new Date(d)); } return dir<0?out.reverse():out; }
+  function renderFT(){
+    $('#ftList').innerHTML=HOL.map(h=>{ const t=parse(h.tag), on=h.tag in FT, sel=FT[h.tag]||'';
+      const opts=[...workdays(t,-1,2).map(d=>['vorholen',d]),...workdays(t,1,2).map(d=>['nachholen',d])];
+      const known=opts.some(([,d])=>iso(d)===sel);
+      return `<div class="ft" data-tag="${h.tag}"><label class="row"><input type="checkbox" class="fchk" ${on?'checked':''}><span class="box"></span><b>${WDN[t.getDay()]} ${t.getDate()}. ${MON[t.getMonth()]}</b><span class="nm">${h.name}</span></label>
+        <div class="ers" ${on?'':'hidden'}><p>Ersatztermin</p><div class="dchips">${opts.map(([k,d])=>`<button type="button" data-d="${iso(d)}" aria-pressed="${iso(d)===sel}"><small>${k}</small>${fD(d)}</button>`).join('')}
+        <button type="button" data-other aria-pressed="${!!sel&&!known}"><small>&nbsp;</small>anderer Tag …</button>
+        <input type="date" class="odate" value="${!known&&sel?sel:''}" ${!known&&sel?'':'hidden'} aria-label="Anderer Ersatztag"></div></div></div>`; }).join('');
+    $$('#ftList .ft').forEach(box=>{ const tag=box.dataset.tag;
+      box.querySelector('.fchk').addEventListener('change',e=>{ if(e.target.checked) FT[tag]=FT[tag]||''; else delete FT[tag]; box.querySelector('.ers').hidden=!e.target.checked; box.classList.remove('err'); summary(); });
+      box.querySelectorAll('[data-d]').forEach(b=>b.addEventListener('click',()=>{ FT[tag]=b.dataset.d; box.querySelectorAll('.dchips button').forEach(x=>x.setAttribute('aria-pressed',String(x===b))); box.querySelector('.odate').hidden=true; box.classList.remove('err'); summary(); }));
+      const od=box.querySelector('.odate');
+      box.querySelector('[data-other]').addEventListener('click',e=>{ box.querySelectorAll('.dchips button').forEach(x=>x.setAttribute('aria-pressed',String(x===e.currentTarget))); od.hidden=false; FT[tag]=od.value||''; od.focus(); try{od.showPicker&&od.showPicker()}catch(_){} summary(); });
+      od.addEventListener('change',()=>{ FT[tag]=od.value; box.classList.remove('err'); summary(); });
+    });
+  }
+  function sections(){ const bf=$('#chkBF').checked, ft=$('#chkFT').checked; $('#secBF').hidden=!bf; $('#secFT').hidden=!ft; $('#secNote').hidden=!(bf||ft); $('#pickMsg').hidden=true; summary(); }
+  $('#chkBF').addEventListener('change',sections); $('#chkFT').addEventListener('change',sections);
+  function ersatzList(){ return Object.entries(FT).filter(([,v])=>v).map(([tag,e])=>({tag,ersatz:e,name:(HOL.find(h=>h.tag===tag)||{}).name||'Feiertag'})); }
+  function summary(){ const el=$('#ksum'), bf=$('#chkBF').checked, ft=$('#chkFT').checked, parts=[];
+    if(bf&&selA&&selB){ const w=Object.entries(weeksValue()).map(([kw,v])=>`KW ${kw}: ${v===0?'kein Einsatz':v+'× reduziert'}`); parts.push(`Betriebsferien ${fmt(selA)} – ${fmt(selB)}`+(w.length?' · '+w.join(' · '):'')); }
+    if(ft) ersatzList().forEach(x=>{ const t=parse(x.tag),d=parse(x.ersatz); parts.push(`${x.name} (${fD(t)}) ${d<t?'vorholen':'nachholen'} am ${fD(d)}`); });
+    if(!parts.length){el.innerHTML='';el.hidden=true;return;} el.hidden=false;
+    el.innerHTML=`<div style="font-size:14px"><b>Ihre Meldung:</b> ${parts.join(' · ')}</div>`; }
 
   $('#kform').addEventListener('submit',async e=>{
     e.preventDefault(); $('#kerr').hidden=true;
-    const okCal=!!(selA&&selB); $('#kcalField').classList.toggle('err',!okCal);
+    const bf=$('#chkBF').checked, ft=$('#chkFT').checked;
+    if(!bf&&!ft){ $('#pickMsg').hidden=false; $('#pickBox').scrollIntoView({behavior:'smooth',block:'center'}); return; }
+    const okCal=!bf||!!(selA&&selB); $('#kcalField').classList.toggle('err',!okCal);
     if(!okCal){ $('#kcal').scrollIntoView({behavior:'smooth',block:'center'}); return; }
+    if(ft){ const miss=$$('#ftList .ft').filter(b=>b.querySelector('.fchk').checked&&!FT[b.dataset.tag]); miss.forEach(b=>b.classList.add('err'));
+      const none=!ersatzList().length; $('#ftMsg').hidden=!(miss.length||none); if(none&&!miss.length) $('#ftMsg').textContent='Bitte haken Sie mindestens einen Feiertag an und wählen Sie einen Ersatztag.'; else $('#ftMsg').textContent='Bitte wählen Sie für jeden angehakten Feiertag einen Ersatztag.';
+      if(miss.length||none){ (miss[0]||$('#secFT')).scrollIntoView({behavior:'smooth',block:'center'}); return; } }
+    const ERS=ft?ersatzList():[];
     const btn=e.target.querySelector('.btn-p'); btn.classList.add('busy'); btn.disabled=true; const a=ic(btn.querySelector('.ld'),'loader');
     try{
       if(PV){ await new Promise(x=>setTimeout(x,400)); }
-      const r=PV?{ok:true,json:async()=>({ok:true,email:D.email})}:await fetch('/api/r?t='+encodeURIComponent(token)+TQ,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({von:iso(selA),bis:iso(selB),weeks:weeksValue(),note:$('#knote').value})});
+      const r=PV?{ok:true,json:async()=>({ok:true,email:D.email})}:await fetch('/api/r?t='+encodeURIComponent(token)+TQ,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({von:bf?iso(selA):null,bis:bf?iso(selB):null,weeks:bf?weeksValue():{},ersatz:ERS,note:$('#knote').value})});
       const j=await r.json(); if(!r.ok) throw new Error(j.error||'Fehler beim Speichern');
-      { const wv=weeksValue(), wk=isoWeeks(selA,selB), n=Math.round((selB-selA)/DAY)+1, esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
-        const note=$('#knote').value.trim();
-        $('#kthanksSum').innerHTML=`<div class="tp"><small>Ihre Betriebsferien</small><b>${fmt(selA)} ${selA.getFullYear()!==selB.getFullYear()?selA.getFullYear()+' ':''}– ${fmt(selB)} ${selB.getFullYear()}</b><span>${n} Tage</span></div>`
-          + wk.map(w=>{const v=+wv[w.kw]; return `<div class="tw"><div class="kw"><b>KW ${w.kw}</b><span>${fmtK(w.a)} – ${fmtK(w.b)}</span></div><span class="tag ${v?'red':''}">${v===0?'Kein Einsatz':v+'× reduziert'}</span></div>`;}).join('')
-          + (note?`<div class="tn"><b style="color:var(--cs-fg)">Bemerkung:</b> ${esc(note)}</div>`:'');
+      { const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]); let h='';
+        if(bf){ const wv=weeksValue(), wk=isoWeeks(selA,selB), n=Math.round((selB-selA)/DAY)+1;
+          h+=`<div class="tp"><small>Ihre Betriebsferien</small><b>${fmt(selA)} ${selA.getFullYear()!==selB.getFullYear()?selA.getFullYear()+' ':''}– ${fmt(selB)} ${selB.getFullYear()}</b><span>${n} Tage</span></div>`
+            + wk.map(w=>{const v=+wv[w.kw]; return `<div class="tw"><div class="kw"><b>KW ${w.kw}</b><span>${fmtK(w.a)} – ${fmtK(w.b)}</span></div><span class="tag ${v?'red':''}">${v===0?'Kein Einsatz':v+'× reduziert'}</span></div>`;}).join(''); }
+        if(ERS.length){ h+=`<div class="tp"${bf?' style="border-top:1px solid var(--cs-line)"':''}><small>Ersatztermine für Feiertage</small></div>`
+            + ERS.map(x=>{const t=parse(x.tag),d=parse(x.ersatz); return `<div class="tw"><div class="kw"><b>${esc(x.name)}</b><span>${fD(t)}</span></div><span class="tag red">${d<t?'vorholen':'nachholen'} ${fD(d)}</span></div>`;}).join(''); }
+        const note=$('#knote').value.trim(); if(note) h+=`<div class="tn"><b style="color:var(--cs-fg)">Bemerkung:</b> ${esc(note)}</div>`;
+        $('#kthanksSum').innerHTML=h;
         $('#kthanksTx').textContent=(j.email?'Eine Bestätigung geht an '+j.email+'.':'')+(PV?' Vorschau: nichts gespeichert, keine Mail versendet.':''); }
       $('#kform').hidden=true; $('#kthanks').hidden=false; ic($('#kthanksIc'),'check'); window.scrollTo({top:0,behavior:'smooth'});
-      $('#submitLbl').textContent='Betriebsferien aktualisieren';
+      $('#submitLbl').textContent='Angaben aktualisieren';
     }catch(err){ $('#kerr').textContent=err.message+' Bitte versuchen Sie es erneut oder melden Sie sich unter T 0844 355 355.'; $('#kerr').hidden=false; }
     finally{ if(a)a.destroy(); btn.classList.remove('busy'); btn.disabled=false; }
   });

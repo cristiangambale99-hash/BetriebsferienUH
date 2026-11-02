@@ -47,6 +47,14 @@ function weekRanges(von, bis) {
   }
   return out;
 }
+// Gesetzliche Feiertage im Anfragezeitraum (Weihnachten/Neujahr)
+function holidays(from, to) {
+  const out = []; const y0 = +String(from).slice(0, 4), y1 = +String(to).slice(0, 4);
+  for (let y = y0; y <= y1; y++) [['12-25', 'Weihnachten'], ['12-26', 'Stephanstag'], ['01-01', 'Neujahr'], ['01-02', 'Berchtoldstag']].forEach(([md, name]) => { const tag = `${y}-${md}`; if (tag >= from && tag <= to) out.push({ tag, name }); });
+  return out.sort((a, b) => a.tag.localeCompare(b.tag));
+}
+const WD = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+function fmtDay(iso) { if (!iso) return ''; const [y, m, d] = String(iso).slice(0, 10).split('-').map(Number); const dt = new Date(Date.UTC(y, m - 1, d)); return `${WD[dt.getUTCDay()]} ${d}.${m}.`; }
 function fmtShort(iso) { if (!iso) return ''; const [y, m, d] = String(iso).slice(0, 10).split('-'); return `${d}.${m}.${y}`; }
 
 // Anrede aus Ansprechperson: «Frau Keller» / «Herr Brunner» nur wenn Titel bekannt, sonst voller Name
@@ -76,7 +84,9 @@ const DEFAULT_BODY = `{Anrede}
 
 Über die Festtage reinigen wir {Objekt} wie gewohnt an den vereinbarten Tagen. Dafür müssen Sie nichts unternehmen.
 
-Falls Ihr Betrieb über Weihnachten und Neujahr Betriebsferien hat und Sie in dieser Zeit keinen oder einen reduzierten Reinigungseinsatz wünschen, teilen Sie uns dies bitte über den folgenden Knopf mit. Sie erfassen Ihre Betriebsferien von–bis und legen für jede betroffene Kalenderwoche fest, ob gar kein Einsatz oder ein reduzierter Einsatz stattfinden soll. Das dauert weniger als eine Minute.
+Bitte beachten Sie, dass an gesetzlichen Feiertagen, sofern diese auf Ihren regulären Reinigungstag fallen, grundsätzlich keine Reinigung durchgeführt wird.
+
+Falls Ihr Betrieb über Weihnachten und Neujahr Betriebsferien hat oder Sie trotz Feiertag eine Reinigung wünschen, teilen Sie uns dies bitte über den folgenden Knopf mit. Sie erfassen dort Ihre Betriebsferien und wählen bei Bedarf einen Ersatztermin vor oder nach dem Feiertag. Das dauert weniger als eine Minute.
 
 Herzlichen Dank für Ihr Vertrauen und freundliche Grüsse
 
@@ -95,7 +105,7 @@ function mailHtml(c, s, { reminder = false, inline = false, button } = {}) {
   const paras = body.split(/\n\s*\n/).map(p => p.trim()).filter(Boolean);
   const link = `${BASE_URL}/r/${c.token}`;
   const logo = inline ? `cid:${LOGO_CID}` : `${BASE_URL}/brand/clean-service-logo.png`;
-  const btnLabel = button || s.button || (reminder ? 'Betriebsferien jetzt melden' : 'Betriebsferien melden');
+  const btnLabel = button || s.button || 'Betriebsferien oder Ersatztermin melden';
   let idx = paras.findIndex(p => /Knopf|Link/i.test(p)); if (idx < 0) idx = Math.min(1, paras.length - 1);
   // Jeder Absatz eine eigene Tabellenzeile mit festem Abstand – so bleiben die Absätze auch in Outlook sauber
   const T = `${F}font-size:14px;line-height:22px;color:#3c3c3b;mso-line-height-rule:exactly`;
@@ -125,7 +135,7 @@ Industriestrasse 5 · 8307 Effretikon<br>T <a href="tel:+41844355355" style="col
 function mailText(c, s, { reminder = false } = {}) {
   const body = fill(s.body || DEFAULT_BODY, c, s);
   const link = `${BASE_URL}/r/${c.token}`;
-  return (reminder ? fill(REMIND_INTRO, c, s) + '\n\n' : '') + body + `\n\n${s.button || 'Betriebsferien melden'}: ${link}\n\nIndustriestrasse 5 · 8307 Effretikon · T 0844 355 355 · clean-service.ch`;
+  return (reminder ? fill(REMIND_INTRO, c, s) + '\n\n' : '') + body + `\n\n${s.button || 'Betriebsferien oder Ersatztermin melden'}: ${link}\n\nIndustriestrasse 5 · 8307 Effretikon · T 0844 355 355 · clean-service.ch`;
 }
 
 async function resendSend(payload) {
@@ -147,4 +157,4 @@ const TEST_KUNDE = 'TEST · Clean Service Scaramuzzo AG';
 const isTest = c => !!c && (c.kunde === TEST_KUNDE || c.token === TEST_TOKEN);
 function testCustomer(email) { return { kunde: 'Clean Service Scaramuzzo AG', objekt: 'Industriestrasse 5, 8307 Effretikon', ansprechperson: '', email: email || '', token: TEST_TOKEN + (email ? '?e=' + encodeURIComponent(email) : '') }; }
 
-module.exports = { TEST_KUNDE, isTest, TEST_TOKEN, testCustomer, weekRanges, fmtShort, adminCust, logoAttachment, admin, pub, readBody, json, isAdmin, fmtDate, esc, fill, mailHtml, mailText, resendSend, resendBatch, DEFAULT_BODY, BASE_URL };
+module.exports = { holidays, fmtDay, TEST_KUNDE, isTest, TEST_TOKEN, testCustomer, weekRanges, fmtShort, adminCust, logoAttachment, admin, pub, readBody, json, isAdmin, fmtDate, esc, fill, mailHtml, mailText, resendSend, resendBatch, DEFAULT_BODY, BASE_URL };
