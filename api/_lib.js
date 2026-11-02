@@ -90,25 +90,33 @@ const REMIND_INTRO = `Vor einigen Tagen haben wir Sie zu Ihren Betriebsferien ü
 const LOGO_CID = 'cs-logo';
 function logoAttachment() { return { filename: 'clean-service-logo.png', content: require('./_logo'), content_type: 'image/png', content_id: LOGO_CID }; }
 const F = 'font-family:Verdana,Geneva,sans-serif;';
-function mailHtml(c, s, { reminder = false, inline = false } = {}) {
+function mailHtml(c, s, { reminder = false, inline = false, button } = {}) {
   const body = fill(s.body || DEFAULT_BODY, c, s);
   const paras = body.split(/\n\s*\n/).map(p => p.trim()).filter(Boolean);
   const link = `${BASE_URL}/r/${c.token}`;
   const logo = inline ? `cid:${LOGO_CID}` : `${BASE_URL}/brand/clean-service-logo.png`;
-  const btnLabel = reminder ? 'Betriebsferien jetzt melden' : 'Betriebsferien melden';
+  const btnLabel = button || s.button || (reminder ? 'Betriebsferien jetzt melden' : 'Betriebsferien melden');
   let idx = paras.findIndex(p => /Knopf|Link/i.test(p)); if (idx < 0) idx = Math.min(1, paras.length - 1);
-  const P = p => `<p style="margin:0 0 16px;${F}font-size:14px;line-height:22px;color:#3c3c3b">${esc(p).replace(/\n/g, '<br>')}</p>`;
-  const btn = `<table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:4px 0 22px"><tr><td align="center" bgcolor="#1b8384" style="background:#1b8384;border-radius:6px;padding:12px 26px;mso-padding-alt:12px 26px"><a href="${link}" target="_blank" style="${F}font-size:14px;font-weight:bold;line-height:18px;color:#ffffff;text-decoration:none;display:inline-block">${btnLabel}</a></td></tr></table>`;
-  let html = '';
-  paras.forEach((p, i) => { if (reminder && i === 1) html += P(fill(REMIND_INTRO, c, s)); html += P(p); if (i === idx) html += btn; });
+  // Jeder Absatz eine eigene Tabellenzeile mit festem Abstand – so bleiben die Absätze auch in Outlook sauber
+  const T = `${F}font-size:14px;line-height:22px;color:#3c3c3b;mso-line-height-rule:exactly`;
+  const P = p => `<tr><td style="padding:0 0 18px;${T}">${esc(p).replace(/\n/g, '<br>')}</td></tr>`;
+  // Knopf: abgerundet in allen Programmen (VML für Outlook am PC), mit Abstand oben und unten
+  const w = Math.max(220, Math.round(btnLabel.length * 7.4 + 56));
+  const btn = `<tr><td style="padding:6px 0 26px">
+<!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${link}" style="height:46px;v-text-anchor:middle;width:${w}px;" arcsize="14%" stroke="f" fillcolor="#1b8384"><w:anchorlock/><center style="color:#ffffff;font-family:Verdana,Geneva,sans-serif;font-size:14px;font-weight:bold;">${esc(btnLabel)}</center></v:roundrect><![endif]-->
+<!--[if !mso]><!--><a href="${link}" target="_blank" style="display:inline-block;background:#1b8384;border-radius:6px;padding:13px 28px;${F}font-size:14px;font-weight:bold;line-height:20px;color:#ffffff;text-decoration:none">${esc(btnLabel)}</a><!--<![endif]-->
+</td></tr>`;
+  let rows = '';
+  paras.forEach((p, i) => { if (reminder && i === 1) rows += P(fill(REMIND_INTRO, c, s)); rows += P(p); if (i === idx) rows += btn; });
   const rt = esc(s.reply_to || 'unterhaltsreinigung@clean-service.ch');
-  return `<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="x-apple-disable-message-reformatting"><title>${esc(fill(s.subject, c, s))}</title></head>
+  return `<!doctype html><html lang="de" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="x-apple-disable-message-reformatting"><title>${esc(fill(s.subject, c, s))}</title>
+<!--[if mso]><style>td,a{font-family:Verdana,Geneva,sans-serif!important}</style><![endif]--></head>
 <body style="margin:0;padding:0;background:#ffffff">
 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" style="background:#ffffff"><tr><td align="left" style="padding:24px 20px">
 <table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:600px">
-<tr><td style="padding:0 0 30px"><img src="${logo}" width="190" height="60" alt="Clean Service by Scaramuzzo" style="display:block;width:190px;height:60px;border:0;outline:none"></td></tr>
-<tr><td>${html}</td></tr>
-<tr><td style="padding:6px 0 0"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"><tr><td style="border-top:1px solid #dcebee;padding-top:14px;${F}font-size:12px;line-height:19px;color:#767676">
+<tr><td style="padding:0 0 32px"><img src="${logo}" width="190" height="60" alt="Clean Service by Scaramuzzo" style="display:block;width:190px;height:60px;border:0;outline:none"></td></tr>
+${rows}
+<tr><td style="padding:10px 0 0"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"><tr><td style="border-top:1px solid #dcebee;padding-top:14px;${F}font-size:12px;line-height:19px;color:#767676;mso-line-height-rule:exactly">
 Industriestrasse 5 · 8307 Effretikon<br>T <a href="tel:+41844355355" style="color:#767676;text-decoration:none">0844 355 355</a> · <a href="mailto:${rt}" style="color:#1b8384;text-decoration:none">${rt}</a> · <a href="https://www.clean-service.ch" style="color:#1b8384;text-decoration:none">clean-service.ch</a>
 </td></tr></table></td></tr>
 </table>
@@ -117,7 +125,7 @@ Industriestrasse 5 · 8307 Effretikon<br>T <a href="tel:+41844355355" style="col
 function mailText(c, s, { reminder = false } = {}) {
   const body = fill(s.body || DEFAULT_BODY, c, s);
   const link = `${BASE_URL}/r/${c.token}`;
-  return (reminder ? fill(REMIND_INTRO, c, s) + '\n\n' : '') + body + `\n\nBetriebsferien melden: ${link}\n\nIndustriestrasse 5 · 8307 Effretikon · T 0844 355 355 · clean-service.ch`;
+  return (reminder ? fill(REMIND_INTRO, c, s) + '\n\n' : '') + body + `\n\n${s.button || 'Betriebsferien melden'}: ${link}\n\nIndustriestrasse 5 · 8307 Effretikon · T 0844 355 355 · clean-service.ch`;
 }
 
 async function resendSend(payload) {
