@@ -19,6 +19,14 @@
 .errbox{background:var(--cs-err-bg);border:1px solid rgba(200,85,75,.35);border-radius:10px;padding:12px 14px;font-size:14px;margin-bottom:14px}
 .inb{list-style:none;margin:0;padding:0}
 .listfoot{display:flex;flex-wrap:wrap;gap:6px 18px;justify-content:space-between;padding:14px 18px;border-top:1px solid var(--cs-line,#dcebee);font-size:13.5px;color:var(--cs-muted,#767676)}.listfoot b{color:var(--cs-ink,#3c3c3b);font-weight:600}.listfoot:empty{display:none}
+[data-view=send] .content{display:grid;grid-template-columns:minmax(0,720px) minmax(0,1fr);gap:28px;align-items:start}
+.livepv{position:sticky;top:16px;background:#fff;border:1px solid var(--cs-line,#dcebee);border-radius:16px;padding:14px}
+.livepv .lph{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}.livepv select{max-width:60%;height:34px;border:1px solid var(--cs-line,#dcebee);border-radius:999px;padding:0 10px;font:500 13px var(--cs-font,Figtree,system-ui,sans-serif);color:#3c3c3b;background:#fff}
+.livepv iframe{width:100%;height:calc(100dvh - 150px);min-height:560px;border:1px solid var(--cs-line,#dcebee);border-radius:10px;background:#fff}
+@media (max-width:1180px){[data-view=send] .content{display:block}.livepv{position:static;margin-top:20px}.livepv iframe{height:620px}}
+.mtop{display:flex;align-items:center;justify-content:space-between;gap:10px}.mstate{font-size:12.5px;font-weight:600;padding:3px 10px;border-radius:999px}.mstate.dirty{background:#fdf1ea;color:#a3471f}.mstate.saved{background:#e3f2f2;color:#1b8384}
+.chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:2px 0 14px}.chips .chip{min-height:30px;padding:4px 12px;font-size:13px}
+.mact{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
 .cdlg{position:fixed;inset:0;z-index:120;background:rgba(30,40,45,.35);display:grid;place-items:center;padding:16px}.cdlg[hidden]{display:none}.cdlg .card{width:min(460px,100%);padding:24px 22px;max-height:calc(100dvh - 32px);overflow:auto}.cdlg .field{margin-bottom:12px}
 .errbox{background:#fbeceb;border:1px solid rgba(200,85,75,.35);border-radius:10px;padding:10px 12px;font-size:14px;margin:4px 0 8px}
 .btn-del{color:#b3261e!important}
@@ -238,9 +246,17 @@
 <div class="field"><label for="frist">Antwortfrist <span class="req">*</span></label><input type="date" id="frist"><span class="msg">Bitte eine Antwortfrist wählen.</span></div>
 </div>
 <div class="card fsec">
-<h2>2. E-Mail</h2><p class="hint">Platzhalter: {Anrede}, {Ansprechperson}, {Kunde}, {Objekt}, {Von}, {Bis}, {Frist}. Der Knopf «Betriebsferien melden» mit dem persönlichen Link wird automatisch eingesetzt.</p>
+<div class="mtop"><h2>2. E-Mail-Text</h2><span class="mstate" id="mState"></span></div>
+<p class="hint">Hier passt du Betreff und Text an. Leerzeile = neuer Absatz. Felder in geschweiften Klammern füllt die App pro Kunde aus, der Knopf «Betriebsferien melden» mit dem persönlichen Link kommt automatisch nach dem Absatz mit dem Wort «Knopf».</p>
+<div class="chips" id="phChips" aria-label="Feld einsetzen"><span class="muted" style="font-size:13px">Einsetzen:</span>
+<button type="button" class="chip" data-ph="{Anrede}" title="z. B. «Guten Tag Frau Odermatt»">Anrede</button>
+<button type="button" class="chip" data-ph="{Objekt}" title="z. B. «Ihr Objekt Zürcherstrasse 68, 8800 Thalwil»">Objekt</button>
+<button type="button" class="chip" data-ph="{Kunde}" title="Firmenname">Kunde</button>
+<button type="button" class="chip" data-ph="{Von}" title="z. B. «21. Dezember 2026»">Von</button>
+<button type="button" class="chip" data-ph="{Bis}" title="z. B. «3. Januar 2027»">Bis</button></div>
 <div class="field"><label for="betreff">Betreff <span class="req">*</span></label><input type="text" id="betreff"><span class="msg">Bitte einen Betreff eingeben.</span></div>
-<div class="field"><label for="text">Nachricht <span class="req">*</span></label><textarea id="text" rows="12"></textarea><span class="msg">Bitte einen Text eingeben.</span></div>
+<div class="field"><label for="text">Nachricht <span class="req">*</span></label><textarea id="text" rows="14"></textarea><span class="msg">Bitte einen Text eingeben.</span></div>
+<div class="mact"><button type="button" class="btn btn-s" id="saveTpl2"><svg><use href="#i-ok"/></svg>Text speichern</button><button type="button" class="btn btn-g" id="resetTpl">Standardtext wiederherstellen</button></div>
 </div>
 <div class="card fsec">
 <h2>3. Empfänger</h2><p class="hint">Kunden, die bereits Betriebsferien gemeldet haben, erhalten keine Erinnerung.</p>
@@ -258,6 +274,7 @@
 <button type="submit" class="btn btn-p" id="sendBtn"><span class="ld"></span><span class="lbl2"><svg><use href="#i-send"/></svg></span><span id="sendLbl">Senden</span></button>
 </div>
 </form>
+<aside class="livepv" aria-label="Live-Vorschau"><div class="lph"><b>Live-Vorschau</b><select id="lpSel" aria-label="Beispielkunde"></select></div><iframe id="lpFrame" title="Live-Vorschau der E-Mail"></iframe><p class="muted" style="font-size:12.5px;margin-top:8px">So sieht der ausgewählte Kunde die Mail. Aktualisiert sich beim Tippen.</p></aside>
 </div>
 </section>
 <!-- Einstellungen -->

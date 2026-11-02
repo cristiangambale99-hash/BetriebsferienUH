@@ -68,3 +68,22 @@ async function check(){if(busy||!active)return;const g=__bf.g&&__bf.g();if(!g||!
  try{const r=await __bf.api('bk_check',{ids});active=r.active!==!1;Object.assign(known,r.chats||{})}catch(e){}finally{busy=!1}paint()}
 let tm=0;new MutationObserver(()=>{clearTimeout(tm);tm=setTimeout(()=>{paint();check()},150)}).observe(document.getElementById('inbox'),{childList:!0});setTimeout(check,1500);
 }();
+
+/* E-Mail-Text bearbeiten: Felder einsetzen, Live-Vorschau, speichern, Standardtext */
+!function(){const $=s=>document.querySelector(s),tx=$('#text'),bt=$('#betreff'),fr=$('#lpFrame'),sel=$('#lpSel'),st=$('#mState');if(!tx||!fr)return;
+let last=tx,saved='',tm=0,filled=!1;
+const cur=()=>bt.value+'\u0001'+tx.value;
+function state(){const d=cur()!==saved;st.className='mstate '+(d?'dirty':'saved');st.textContent=d?'Nicht gespeichert':'Gespeichert'}
+[tx,bt].forEach(el=>el.addEventListener('focus',()=>last=el));
+document.getElementById('phChips').addEventListener('click',e=>{const b=e.target.closest('[data-ph]');if(!b)return;const el=last,p=b.dataset.ph,a=el.selectionStart??el.value.length,z=el.selectionEnd??a;el.value=el.value.slice(0,a)+p+el.value.slice(z);el.focus();el.setSelectionRange(a+p.length,a+p.length);el.dispatchEvent(new Event('input',{bubbles:!0}))});
+function fillSel(){const g=__bf.g();if(!g||!g.customers||!g.customers.length)return;const l=[...g.customers].filter(c=>!/^TEST /.test(c.kunde)).sort((a,b)=>String(a.kunde).localeCompare(String(b.kunde),'de'));const v=sel.value;sel.innerHTML=l.slice(0,400).map(c=>`<option value="${c.id}">${String(c.kunde).replace(/</g,'&lt;')}</option>`).join('');if(v)sel.value=v;filled=!0}
+async function render(){if(!filled)fillSel();let s={};try{s=__bf.s()}catch(e){}try{const r=await fetch('/api/admin?action=preview',{method:'POST',headers:__bf.h(),body:JSON.stringify({id:sel.value||null,settings:s})});fr.srcdoc=await r.text()}catch(e){}}
+const later=()=>{clearTimeout(tm);tm=setTimeout(render,450);state()};
+[tx,bt,$('#von'),$('#bis')].forEach(el=>el&&el.addEventListener('input',later));sel.addEventListener('change',render);
+async function save(){try{const g=__bf.g();g.settings=await __bf.api('settings',__bf.s());saved=cur();state();__bf.toast('E-Mail-Text gespeichert','check')}catch(e){__bf.toast(e.message,'error')}}
+$('#saveTpl2').addEventListener('click',save);$('#saveTpl').addEventListener('click',()=>setTimeout(()=>{saved=cur();state()},400));
+$('#resetTpl').addEventListener('click',async()=>{if(!confirm('Betreff und Text auf den Standardtext zurücksetzen? Deine Änderungen gehen verloren, sobald du speicherst.'))return;try{const d=await __bf.api('default_text',null,'GET');bt.value=d.subject;tx.value=d.body;later();__bf.toast('Standardtext eingesetzt – zum Übernehmen «Text speichern»','info')}catch(e){__bf.toast(e.message,'error')}});
+window.addEventListener('beforeunload',e=>{if(saved&&cur()!==saved){e.preventDefault();e.returnValue=''}});
+new MutationObserver(()=>{const v=document.querySelector('section[data-view=send]');if(v&&v.classList.contains('on')&&!fr.dataset.init){fr.dataset.init=1;saved=cur();state();render()}}).observe(document.querySelector('section[data-view=send]'),{attributes:!0,attributeFilter:['class']});
+document.addEventListener('click',e=>{if(e.target.closest('[data-go=send]'))setTimeout(()=>{if(!saved)saved=cur();state();render()},300)});
+}();

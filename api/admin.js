@@ -22,6 +22,7 @@ module.exports = async (req, res) => {
       if (!rows.length) return L.json(res, 400, { error: 'Keine Zeilen' });
       return L.json(res, 200, await L.admin('import', { rows, by }));
     }
+    if (action === 'default_text') return L.json(res, 200, { subject: 'Betriebsferien über Weihnachten und Neujahr – Ihre Reinigung vom {Von} bis {Bis}', body: L.DEFAULT_BODY });
     if (action === 'bk_check') {
       // Für jede Rückmeldung prüfen, ob es einen eindeutigen Beekeeper-Kundenchat gibt
       const B = require('./_beekeeper');
