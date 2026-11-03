@@ -3,7 +3,7 @@ const L = require('./_lib');
 const WD = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
 
 function weekLines(weeks) {
-  return Object.keys(weeks || {}).sort((a, b) => +a - +b).map(kw => `KW ${kw}: ${+weeks[kw] === 0 ? 'kein Einsatz' : weeks[kw] + '× reduziert'}`);
+  return Object.keys(weeks || {}).sort((a, b) => +a - +b).map(kw => `KW ${kw}: ${+weeks[kw] === 0 ? 'kein Einsatz' : weeks[kw] + (+weeks[kw] === 1 ? ' Einsatz' : ' Einsätze')}`);
 }
 
 module.exports = async (req, res) => {
@@ -34,7 +34,7 @@ module.exports = async (req, res) => {
     const hasBF = !!(b.von || b.bis);
     if (hasBF && (!D.test(b.von || '') || !D.test(b.bis || ''))) return L.json(res, 400, { error: 'Bitte ersten und letzten Ferientag wählen.' });
     if (hasBF && b.bis < b.von) return L.json(res, 400, { error: 'Das Ende liegt vor dem Anfang.' });
-    const weeks = {}; if (hasBF) for (const [k, v] of Object.entries(b.weeks || {})) if (/^\d{1,2}$/.test(k) && [0, 1, 2, 3].includes(+v)) weeks[k] = +v;
+    const weeks = {}; if (hasBF) for (const [k, v] of Object.entries(b.weeks || {})) if (/^\d{1,2}$/.test(k) && Number.isInteger(+v) && +v >= 0 && +v <= 6) weeks[k] = +v;
     // Ersatztermine für Feiertage: nur bekannte Feiertage, Ersatztag als Datum
     const info = TEST ? testCust : await L.pub('get', { token });
     const known = Object.fromEntries(L.holidays(String(info.period_from || '2026-12-21').slice(0, 10), String(info.period_to || '2027-01-03').slice(0, 10)).map(h => [h.tag, h.name]));
@@ -66,7 +66,7 @@ module.exports = async (req, res) => {
       let box = '';
       if (hasBF) {
         box += head(`<span style="font-size:11px;letter-spacing:1px;color:#767676">IHRE BETRIEBSFERIEN</span><br><b style="font-size:15px">${L.esc(L.fmtDate(resp.von))} – ${L.esc(L.fmtDate(resp.bis))}</b>`);
-        box += Object.keys(weeks).sort((a, c) => +a - +c).map(kw => cell(`KW ${kw}${wr[kw] ? ' <span style="color:#767676">(' + wr[kw] + ')</span>' : ''}`, +weeks[kw] === 0 ? 'Kein Einsatz' : weeks[kw] + '× reduziert', +weeks[kw] === 0 ? '#3c3c3b' : '#1b8384')).join('');
+        box += Object.keys(weeks).sort((a, c) => +a - +c).map(kw => cell(`KW ${kw}${wr[kw] ? ' <span style="color:#767676">(' + wr[kw] + ')</span>' : ''}`, +weeks[kw] === 0 ? 'Kein Einsatz' : weeks[kw] + (+weeks[kw] === 1 ? ' Einsatz' : ' Einsätze'), +weeks[kw] === 0 ? '#3c3c3b' : '#1b8384')).join('');
       }
       if (ersatz.length) {
         box += head(`<span style="font-size:11px;letter-spacing:1px;color:#767676">ERSATZTERMINE FÜR FEIERTAGE</span>`);

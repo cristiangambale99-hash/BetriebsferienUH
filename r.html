@@ -46,6 +46,7 @@ input:checked+.box{background:#1b8384;border-color:#1b8384}input:checked+.box:af
 .dchips button small{display:block;font-size:11px;opacity:.75}.dchips button[aria-pressed=true]{background:#1b8384;border-color:#1b8384;color:#fff}
 .dchips input[type=date]{height:44px;border:1px solid var(--cs-line-strong);border-radius:999px;padding:0 12px;font:500 13.5px var(--cs-font);color:var(--cs-fg)}
 .ft.err{border-color:#b3261e}
+.wk .seg{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}.wk .seg label:first-child{grid-column:1/-1;justify-content:center}.wk .seg label{justify-content:center;padding:9px 4px;font-size:15.5px;font-weight:600}.segcap{grid-column:1/-1;font-size:13px;color:var(--cs-fg-2);margin-top:4px}
 .errbox{background:var(--cs-err-bg);border:1px solid rgba(200,85,75,.35);border-radius:10px;padding:12px 14px;font-size:14px;margin-bottom:14px}
 .loading{display:grid;justify-items:center;gap:8px;padding:40px;color:var(--cs-fg-2)}
 .loading .ic{width:56px;height:56px}
@@ -108,8 +109,8 @@ input:checked+.box{background:#1b8384;border-color:#1b8384}input:checked+.box:af
       </div>
     </div>
     <div class="card fsec" id="kWeeks">
-      <h2>Einsatz in den betroffenen Kalenderwochen</h2>
-      <p class="hint">Wählen Sie für jede Woche, ob in dieser Zeit gereinigt werden soll.</p>
+      <h2>Wie oft sollen wir in diesen Wochen reinigen?</h2>
+      <p class="hint">Wählen Sie pro Kalenderwoche die Anzahl Reinigungen. «Kein Einsatz» heisst: Wir kommen in dieser Woche nicht.</p>
       <div id="kweeks" class="weeks"></div>
     </div>
     </div>
@@ -207,10 +208,10 @@ input:checked+.box{background:#1b8384;border-color:#1b8384}input:checked+.box:af
     box.innerHTML=weeks.map(w=>{
       let ft=0; for(let d=new Date(w.a);d<=w.b;d=new Date(d.getTime()+DAY)) if(d>=selA&&d<=selB) ft++;
       const def=prev&&prev[w.kw]!==undefined?+prev[w.kw]:0;
-      const opts=[0,1,2,3].map(v=>`<label><input type="radio" name="w${w.kw}" value="${v}" ${v===def?'checked':''}><span>${v===0?'Kein Einsatz':v+'× reduziert'}</span></label>`);
+      const opts=[0,1,2,3,4,5,6].map(v=>`<label><input type="radio" name="w${w.kw}" value="${v}" ${v===def?'checked':''}><span>${v===0?'Kein Einsatz':v+'×'}</span></label>`);
       return `<div class="wk ${def===0?'none':''}" data-kw="${w.kw}"><div class="wh"><b>KW ${w.kw}</b><span>${fmtK(w.a)} – ${fmtK(w.b)} · ${ft===7?'ganze Woche geschlossen':ft+' Ferientag'+(ft>1?'e':'')}</span></div>
-        <div class="seg" role="radiogroup" aria-label="Einsatz KW ${w.kw}">${opts.join('')}</div>
-        <div class="wn">«Reduziert» nur für Kunden mit mehreren Reinigungen pro Woche.</div></div>`;
+        <div class="seg" role="radiogroup" aria-label="Einsätze KW ${w.kw}">${opts[0]}<span class="segcap">oder reduziert auf … Einsätze in dieser Woche:</span>${opts.slice(1).join('')}</div>
+        <div class="wn">Bitte höchstens so viele Einsätze wählen, wie Sie normalerweise pro Woche haben.</div></div>`;
     }).join('');
     $$('#kweeks input[type=radio]').forEach(r=>r.addEventListener('change',()=>{r.closest('.wk').classList.toggle('none',r.value==='0');summary();}));
   }
@@ -239,7 +240,7 @@ input:checked+.box{background:#1b8384;border-color:#1b8384}input:checked+.box:af
   $('#chkBF').addEventListener('change',sections); $('#chkFT').addEventListener('change',sections);
   function ersatzList(){ return Object.entries(FT).filter(([,v])=>v).map(([tag,e])=>({tag,ersatz:e,name:(HOL.find(h=>h.tag===tag)||{}).name||'Feiertag'})); }
   function summary(){ const el=$('#ksum'), bf=$('#chkBF').checked, ft=$('#chkFT').checked, parts=[];
-    if(bf&&selA&&selB){ const w=Object.entries(weeksValue()).map(([kw,v])=>`KW ${kw}: ${v===0?'kein Einsatz':v+'× reduziert'}`); parts.push(`Betriebsferien ${fmt(selA)} – ${fmt(selB)}`+(w.length?' · '+w.join(' · '):'')); }
+    if(bf&&selA&&selB){ const w=Object.entries(weeksValue()).map(([kw,v])=>`KW ${kw}: ${v===0?'kein Einsatz':v+(v===1?' Einsatz':' Einsätze')}`); parts.push(`Betriebsferien ${fmt(selA)} – ${fmt(selB)}`+(w.length?' · '+w.join(' · '):'')); }
     if(ft) ersatzList().forEach(x=>{ const t=parse(x.tag),d=parse(x.ersatz); parts.push(`${x.name} (${fD(t)}) ${d<t?'vorholen':'nachholen'} am ${fD(d)}`); });
     if(!parts.length){el.innerHTML='';el.hidden=true;return;} el.hidden=false;
     el.innerHTML=`<div style="font-size:14px"><b>Ihre Meldung:</b> ${parts.join(' · ')}</div>`; }
@@ -262,7 +263,7 @@ input:checked+.box{background:#1b8384;border-color:#1b8384}input:checked+.box:af
       { const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]); let h='';
         if(bf){ const wv=weeksValue(), wk=isoWeeks(selA,selB), n=Math.round((selB-selA)/DAY)+1;
           h+=`<div class="tp"><small>Ihre Betriebsferien</small><b>${fmt(selA)} ${selA.getFullYear()!==selB.getFullYear()?selA.getFullYear()+' ':''}– ${fmt(selB)} ${selB.getFullYear()}</b><span>${n} Tage</span></div>`
-            + wk.map(w=>{const v=+wv[w.kw]; return `<div class="tw"><div class="kw"><b>KW ${w.kw}</b><span>${fmtK(w.a)} – ${fmtK(w.b)}</span></div><span class="tag ${v?'red':''}">${v===0?'Kein Einsatz':v+'× reduziert'}</span></div>`;}).join(''); }
+            + wk.map(w=>{const v=+wv[w.kw]; return `<div class="tw"><div class="kw"><b>KW ${w.kw}</b><span>${fmtK(w.a)} – ${fmtK(w.b)}</span></div><span class="tag ${v?'red':''}">${v===0?'Kein Einsatz':v+(v===1?' Einsatz':' Einsätze')}</span></div>`;}).join(''); }
         if(ERS.length){ h+=`<div class="tp"${bf?' style="border-top:1px solid var(--cs-line)"':''}><small>Ersatztermine für Feiertage</small></div>`
             + ERS.map(x=>{const t=parse(x.tag),d=parse(x.ersatz); return `<div class="tw"><div class="kw"><b>${esc(x.name)}</b><span>${fD(t)}</span></div><span class="tag red">${d<t?'vorholen':'nachholen'} ${fD(d)}</span></div>`;}).join(''); }
         const note=$('#knote').value.trim(); if(note) h+=`<div class="tn"><b style="color:var(--cs-fg)">Bemerkung:</b> ${esc(note)}</div>`;
