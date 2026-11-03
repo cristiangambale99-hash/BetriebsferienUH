@@ -108,7 +108,9 @@ function mailHtml(c, s, { reminder = false, inline = false, button } = {}) {
   const link = `${BASE_URL}/r/${c.token}`;
   const logo = inline ? `cid:${LOGO_CID}` : `${BASE_URL}/brand/clean-service-logo.png`;
   const btnLabel = button || s.button || 'Betriebsferien melden';
-  let idx = paras.findIndex(p => /Knopf|Link/i.test(p)); if (idx < 0) idx = Math.min(1, paras.length - 1);
+  // Knopf steht nach allen Infos (auch Feiertage), direkt vor dem Gruss; sonst nach dem Absatz mit «Knopf»
+  const gruss = paras.findIndex(p => /^(Herzlich|Freundlich|Besten Dank|Vielen Dank|Wir danken)/i.test(p));
+  let idx = gruss > 0 ? gruss - 1 : paras.findIndex(p => /Knopf|Link/i.test(p)); if (idx < 0) idx = Math.min(1, paras.length - 1);
   // Jeder Absatz eine eigene Tabellenzeile mit festem Abstand – so bleiben die Absätze auch in Outlook sauber
   const T = `${F}font-size:14px;line-height:22px;color:#3c3c3b;mso-line-height-rule:exactly`;
   const P = p => `<tr><td style="padding:0 0 18px;${T}">${esc(p).replace(/\n/g, '<br>')}</td></tr>`;
