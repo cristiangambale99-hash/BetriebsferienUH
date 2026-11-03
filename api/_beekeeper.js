@@ -8,7 +8,7 @@ function text(c, r, { update = false, manual = false } = {}) {
   const lines = [];
   if (r.von) {
     lines.push(`Betriebsferien: ${L.fmtShort(r.von)} – ${L.fmtShort(r.bis)}`);
-    Object.keys(weeks).sort((a, b) => +a - +b).forEach(kw => lines.push(`Betriebsferien KW ${kw}${wr[kw] ? ' (' + wr[kw] + ')' : ''}: ${+weeks[kw] === 0 ? 'kein Einsatz' : weeks[kw] + (+weeks[kw] === 1 ? ' Einsatz' : ' Einsätze')}`));
+    Object.keys(weeks).sort((a, b) => +a - +b).forEach(kw => lines.push(`Betriebsferien KW ${kw}${wr[kw] ? ' (' + wr[kw] + ')' : ''}: ${+weeks[kw] === 0 ? 'kein Einsatz' : weeks[kw] + (+weeks[kw] === 1 ? ' Einsatz' : ' Einsätze') + ((r.wtage || {})[kw] ? ' – ' + r.wtage[kw].map(L.fmtDay).join(', ') : '')}`));
   }
   ers.forEach(x => lines.push(`Feiertag ${x.name} ${L.fmtDay(x.tag)}: Ersatzreinigung am ${L.fmtDay(x.ersatz)} (${x.ersatz < x.tag ? 'vorholen' : 'nachholen'})`));
   if (r.note) lines.push(`Bemerkung: ${String(r.note).trim()}`);

@@ -41,10 +41,11 @@ module.exports = async (req, res) => {
     const ersatz = (Array.isArray(b.ersatz) ? b.ersatz : []).filter(x => x && D.test(x.tag || '') && D.test(x.ersatz || '') && known[x.tag] && x.ersatz !== x.tag)
       .slice(0, 10).map(x => ({ tag: x.tag, name: known[x.tag], ersatz: x.ersatz }));
     if (!hasBF && !ersatz.length) return L.json(res, 400, { error: 'Bitte Betriebsferien erfassen oder für einen Feiertag einen Ersatztag wählen.' });
+    const wtage = {}; if (hasBF) for (const [k, v] of Object.entries(b.wtage || {})) if (weeks[k] > 0 && Array.isArray(v)) { const d = [...new Set(v.filter(x => D.test(x || '') && x >= b.von.slice(0, 4) + '-01-01'))].sort().slice(0, weeks[k]); if (d.length) wtage[k] = d; }
     const note = String(b.note || '').trim().slice(0, 1000);
-    const resp = { von: hasBF ? b.von : null, bis: hasBF ? b.bis : null, weeks, ersatz, note };
+    const resp = { von: hasBF ? b.von : null, bis: hasBF ? b.bis : null, weeks, wtage, ersatz, note };
     const ip = (req.headers['x-forwarded-for'] || '').split(',')[0].trim();
-    const r = TEST ? { kunde: testCust.kunde, email: testCust.email } : await L.pub('respond', { token, von: resp.von, bis: resp.bis, weeks, ersatz, note, ip });
+    const r = TEST ? { kunde: testCust.kunde, email: testCust.email } : await L.pub('respond', { token, von: resp.von, bis: resp.bis, weeks, wtage, ersatz, note, ip });
 
     // Info an die Mitarbeitenden im Beekeeper-Chat (Fehler blockieren die Meldung nicht)
     if (!TEST) try {
@@ -66,7 +67,7 @@ module.exports = async (req, res) => {
       let box = '';
       if (hasBF) {
         box += head(`<span style="font-size:11px;letter-spacing:1px;color:#767676">IHRE BETRIEBSFERIEN</span><br><b style="font-size:15px">${L.esc(L.fmtDate(resp.von))} – ${L.esc(L.fmtDate(resp.bis))}</b>`);
-        box += Object.keys(weeks).sort((a, c) => +a - +c).map(kw => cell(`KW ${kw}${wr[kw] ? ' <span style="color:#767676">(' + wr[kw] + ')</span>' : ''}`, +weeks[kw] === 0 ? 'Kein Einsatz' : weeks[kw] + (+weeks[kw] === 1 ? ' Einsatz' : ' Einsätze'), +weeks[kw] === 0 ? '#3c3c3b' : '#1b8384')).join('');
+        box += Object.keys(weeks).sort((a, c) => +a - +c).map(kw => cell(`KW ${kw}${wr[kw] ? ' <span style="color:#767676">(' + wr[kw] + ')</span>' : ''}`, +weeks[kw] === 0 ? 'Kein Einsatz' : weeks[kw] + (+weeks[kw] === 1 ? ' Einsatz' : ' Einsätze') + (wtage[kw] ? ' <span style="font-weight:normal;color:#767676">(' + wtage[kw].map(L.fmtDay).join(', ') + ')</span>' : ''), +weeks[kw] === 0 ? '#3c3c3b' : '#1b8384')).join('');
       }
       if (ersatz.length) {
         box += head(`<span style="font-size:11px;letter-spacing:1px;color:#767676">ERSATZTERMINE FÜR FEIERTAGE</span>`);

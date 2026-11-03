@@ -172,7 +172,7 @@ input:checked+.box{background:#1b8384;border-color:#1b8384}input:checked+.box:af
       $('#hint1').textContent=`Zeitraum ${fmt(P0)} ${P0.getFullYear()} bis ${fmt(P1)} ${P1.getFullYear()}. Erster Tipp = erster Ferientag, zweiter Tipp = letzter Ferientag.`;
       HOL=j.holidays||[];
       if(j.response){ selA=parse(j.response.von); selB=parse(j.response.bis); (j.response.ersatz||[]).forEach(x=>FT[x.tag]=x.ersatz); $('#submitLbl').textContent='Angaben aktualisieren';
-        $('#chkBF').checked=!!j.response.von; $('#chkFT').checked=(j.response.ersatz||[]).length>0; }
+        $('#chkBF').checked=!!j.response.von; Object.entries(j.response.wtage||{}).forEach(([k,v])=>WT[k]=new Set(v)); $('#chkFT').checked=(j.response.ersatz||[]).length>0; }
       if(!HOL.length) $('#pkFT').hidden=true;
       $('#loading').hidden=true; $('#kform').hidden=false;
       renderCal(); renderWeeks(j.response?j.response.weeks:null); renderFT(); if(j.response&&j.response.note) $('#knote').value=j.response.note; sections(); summary();
@@ -229,6 +229,7 @@ input:checked+.box{background:#1b8384;border-color:#1b8384}input:checked+.box:af
     $$('#kweeks input[type=radio]').forEach(r=>r.addEventListener('change',()=>{const wk=r.closest('.wk'),n=+r.value;wk.classList.toggle('none',n===0);const dz=wk.querySelector('.wday');dz.hidden=n===0;
       const set=WT[wk.dataset.kw]||(WT[wk.dataset.kw]=new Set()); while(set.size>n){ set.delete([...set].pop()); } if(n>0) renderDays(wk,n); summary();}));
   }
+  function wtageValue(){ const wv=weeksValue(), o={}; Object.entries(WT).forEach(([kw,set])=>{ if(+wv[kw]>0&&set.size) o[kw]=[...set].sort().slice(0,+wv[kw]); }); return o; }
   function weeksValue(){ const o={}; $$('#kweeks .wk').forEach(w=>{o[w.dataset.kw]=+w.querySelector('input:checked').value;}); return o; }
   const WDN=['So','Mo','Di','Mi','Do','Fr','Sa'];
   const fD=d=>`${WDN[d.getDay()]} ${d.getDate()}.${d.getMonth()+1}.`;
@@ -272,12 +273,12 @@ input:checked+.box{background:#1b8384;border-color:#1b8384}input:checked+.box:af
     const btn=e.target.querySelector('.btn-p'); btn.classList.add('busy'); btn.disabled=true; const a=ic(btn.querySelector('.ld'),'loader');
     try{
       if(PV){ await new Promise(x=>setTimeout(x,400)); }
-      const r=PV?{ok:true,json:async()=>({ok:true,email:D.email})}:await fetch('/api/r?t='+encodeURIComponent(token)+TQ,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({von:bf?iso(selA):null,bis:bf?iso(selB):null,weeks:bf?weeksValue():{},ersatz:ERS,note:$('#knote').value})});
+      const r=PV?{ok:true,json:async()=>({ok:true,email:D.email})}:await fetch('/api/r?t='+encodeURIComponent(token)+TQ,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({von:bf?iso(selA):null,bis:bf?iso(selB):null,weeks:bf?weeksValue():{},wtage:bf?wtageValue():{},ersatz:ERS,note:$('#knote').value})});
       const j=await r.json(); if(!r.ok) throw new Error(j.error||'Fehler beim Speichern');
       { const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]); let h='';
         if(bf){ const wv=weeksValue(), wk=isoWeeks(selA,selB), n=Math.round((selB-selA)/DAY)+1;
           h+=`<div class="tp"><small>Ihre Betriebsferien</small><b>${fmt(selA)} ${selA.getFullYear()!==selB.getFullYear()?selA.getFullYear()+' ':''}– ${fmt(selB)} ${selB.getFullYear()}</b><span>${n} Tage</span></div>`
-            + wk.map(w=>{const v=+wv[w.kw]; return `<div class="tw"><div class="kw"><b>KW ${w.kw}</b><span>${fmtK(w.a)} – ${fmtK(w.b)}</span></div><span class="tag ${v?'red':''}">${v===0?'Kein Einsatz':v+(v===1?' Einsatz':' Einsätze')}</span></div>`;}).join(''); }
+            + wk.map(w=>{const v=+wv[w.kw]; return `<div class="tw"><div class="kw"><b>KW ${w.kw}</b><span>${fmtK(w.a)} – ${fmtK(w.b)}</span></div><span class="tag ${v?'red':''}">${v===0?'Kein Einsatz':v+(v===1?' Einsatz':' Einsätze')}${v>0&&WT[w.kw]&&WT[w.kw].size?' · '+[...WT[w.kw]].sort().map(x=>WDL[parse(x).getDay()]).join(', '):''}</span></div>`;}).join(''); }
         if(ERS.length){ h+=`<div class="tp"${bf?' style="border-top:1px solid var(--cs-line)"':''}><small>Ersatztermine für Feiertage</small></div>`
             + ERS.map(x=>{const t=parse(x.tag),d=parse(x.ersatz); return `<div class="tw"><div class="kw"><b>${esc(x.name)}</b><span>${fD(t)}</span></div><span class="tag red">${d<t?'vorholen':'nachholen'} ${fD(d)}</span></div>`;}).join(''); }
         const note=$('#knote').value.trim(); if(note) h+=`<div class="tn"><b style="color:var(--cs-fg)">Bemerkung:</b> ${esc(note)}</div>`;
