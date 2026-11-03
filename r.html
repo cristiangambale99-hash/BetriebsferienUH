@@ -47,6 +47,9 @@ input:checked+.box{background:#1b8384;border-color:#1b8384}input:checked+.box:af
 .dchips input[type=date]{height:44px;border:1px solid var(--cs-line-strong);border-radius:999px;padding:0 12px;font:500 13.5px var(--cs-font);color:var(--cs-fg)}
 .ft.err{border-color:#b3261e}
 .wk .seg{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}.wk .seg label:first-child{grid-column:1/-1;justify-content:center}.wk .seg label{justify-content:center;padding:9px 4px;font-size:15.5px;font-weight:600}.segcap{grid-column:1/-1;font-size:13px;color:var(--cs-fg-2);margin-top:4px}
+.wday{margin-top:12px;padding-top:12px;border-top:1px solid var(--cs-line)}.dtitle{font-size:14px;font-weight:600;margin-bottom:8px}.dtitle span{font-weight:400;font-size:12.5px;color:var(--cs-fg-2);margin-left:6px}
+.dgrid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}.dday{border:1px solid var(--cs-line-strong);border-radius:10px;background:#fff;padding:8px 2px;font:inherit;color:var(--cs-fg);cursor:pointer;display:grid;gap:2px;justify-items:center;min-height:52px}.dday b{font-size:14.5px;font-weight:600}.dday small{font-size:11.5px;color:var(--cs-fg-2)}
+.dday[aria-pressed=true]{background:#1b8384;border-color:#1b8384;color:#fff}.dday[aria-pressed=true] small{color:#d8eeee}.dday:disabled{opacity:.4;cursor:default}.dhint{font-size:12.5px;color:var(--cs-fg-2);margin-top:8px}.dhint:empty{display:none}
 .errbox{background:var(--cs-err-bg);border:1px solid rgba(200,85,75,.35);border-radius:10px;padding:12px 14px;font-size:14px;margin-bottom:14px}
 .loading{display:grid;justify-items:center;gap:8px;padding:40px;color:var(--cs-fg-2)}
 .loading .ic{width:56px;height:56px}
@@ -156,7 +159,7 @@ input:checked+.box{background:#1b8384;border-color:#1b8384}input:checked+.box:af
 
   const PV=new URLSearchParams(location.search).has('pv');
   const TE=new URLSearchParams(location.search).get('e'), TQ=TE?'&e='+encodeURIComponent(TE):'';
-  let FT={}, HOL=[];
+  let FT={}, HOL=[], WT={};
   let D=null, P0=null, P1=null, MIN=null, MAX=null, selA=null, selB=null, picking=false;
   ic($('#loadIc'),'loader');
 
@@ -201,6 +204,16 @@ input:checked+.box{background:#1b8384;border-color:#1b8384}input:checked+.box:af
   }
   function isoWeeks(a,b){ const out=[]; let m=new Date(a); m.setDate(m.getDate()-((m.getDay()+6)%7));
     for(;m<=b;m=new Date(m.getTime()+7*DAY)){const s=new Date(m), e=new Date(m.getTime()+6*DAY); const t=new Date(s.getTime()+3*DAY); const y0=new Date(t.getFullYear(),0,4); const kw=1+Math.round(((t-y0)/DAY-3+((y0.getDay()+6)%7))/7); out.push({kw,a:s,b:e});} return out; }
+  const WDL=['So','Mo','Di','Mi','Do','Fr','Sa'];
+  function renderDays(wk,n){ const kw=wk.dataset.kw, w=isoWeeks(selA,selB).find(x=>String(x.kw)===kw); if(!w) return; const set=WT[kw]||(WT[kw]=new Set());
+    const days=[]; for(let i=0;i<6;i++){ days.push(new Date(w.a.getFullYear(),w.a.getMonth(),w.a.getDate()+i)); }
+    const hol=d=>HOL.find(h=>h.tag===iso(d));
+    const full=set.size>=n;
+    wk.querySelector('.wday').innerHTML=`<div class="dtitle">An welchen Tagen? <span>${set.size} von ${n} gewählt · freiwillig</span></div>
+      <div class="dgrid">${days.map(d=>{const h=hol(d),on=set.has(iso(d));return `<button type="button" class="dday" data-d="${iso(d)}" aria-pressed="${on}" ${h||(!on&&full)?'disabled':''}><b>${WDL[d.getDay()]}</b><small>${h?'Feiertag':d.getDate()+'.'+(d.getMonth()+1)+'.'}</small></button>`}).join('')}</div>
+      <p class="dhint">${set.size?'':'Ohne Auswahl planen wir die Einsätze an Ihren üblichen Reinigungstagen.'}</p>`;
+    wk.querySelectorAll('.dday').forEach(b=>b.addEventListener('click',()=>{ const v=b.dataset.d; if(set.has(v)) set.delete(v); else if(set.size<n) set.add(v); renderDays(wk,n); summary(); }));
+  }
   function renderWeeks(prev){
     const box=$('#kweeks');
     if(!selA||!selB){box.innerHTML='<p class="muted">Sobald Sie im Kalender den ersten und den letzten Ferientag angetippt haben, erscheinen hier die betroffenen Kalenderwochen.</p>';return;}
@@ -210,9 +223,11 @@ input:checked+.box{background:#1b8384;border-color:#1b8384}input:checked+.box:af
       const def=prev&&prev[w.kw]!==undefined?+prev[w.kw]:0;
       const opts=[0,1,2,3,4,5,6].map(v=>`<label><input type="radio" name="w${w.kw}" value="${v}" ${v===def?'checked':''}><span>${v===0?'Kein Einsatz':v+'×'}</span></label>`);
       return `<div class="wk ${def===0?'none':''}" data-kw="${w.kw}"><div class="wh"><b>KW ${w.kw}</b><span>${fmtK(w.a)} – ${fmtK(w.b)} · ${ft===7?'ganze Woche geschlossen':ft+' Ferientag'+(ft>1?'e':'')}</span></div>
-        <div class="seg" role="radiogroup" aria-label="Einsätze KW ${w.kw}">${opts[0]}<span class="segcap">oder reduziert auf … Einsätze in dieser Woche:</span>${opts.slice(1).join('')}</div><div class="wn wday" ${def>0?'':'hidden'}>An welchen Tagen? Gerne unten in der Bemerkung angeben. Sonst planen wir die Einsätze an Ihren üblichen Reinigungstagen.</div></div>`;
+        <div class="seg" role="radiogroup" aria-label="Einsätze KW ${w.kw}">${opts[0]}<span class="segcap">oder reduziert auf … Einsätze in dieser Woche:</span>${opts.slice(1).join('')}</div><div class="wday" ${def>0?'':'hidden'}></div></div>`;
     }).join('');
-    $$('#kweeks input[type=radio]').forEach(r=>r.addEventListener('change',()=>{const wk=r.closest('.wk');wk.classList.toggle('none',r.value==='0');wk.querySelector('.wday').hidden=r.value==='0';summary();}));
+    $$('#kweeks .wk').forEach(wk=>{ const n=+wk.querySelector('input:checked').value; if(n>0) renderDays(wk,n); });
+    $$('#kweeks input[type=radio]').forEach(r=>r.addEventListener('change',()=>{const wk=r.closest('.wk'),n=+r.value;wk.classList.toggle('none',n===0);const dz=wk.querySelector('.wday');dz.hidden=n===0;
+      const set=WT[wk.dataset.kw]||(WT[wk.dataset.kw]=new Set()); while(set.size>n){ set.delete([...set].pop()); } if(n>0) renderDays(wk,n); summary();}));
   }
   function weeksValue(){ const o={}; $$('#kweeks .wk').forEach(w=>{o[w.dataset.kw]=+w.querySelector('input:checked').value;}); return o; }
   const WDN=['So','Mo','Di','Mi','Do','Fr','Sa'];
@@ -239,7 +254,7 @@ input:checked+.box{background:#1b8384;border-color:#1b8384}input:checked+.box:af
   $('#chkBF').addEventListener('change',sections); $('#chkFT').addEventListener('change',sections);
   function ersatzList(){ return Object.entries(FT).filter(([,v])=>v).map(([tag,e])=>({tag,ersatz:e,name:(HOL.find(h=>h.tag===tag)||{}).name||'Feiertag'})); }
   function summary(){ const el=$('#ksum'), bf=$('#chkBF').checked, ft=$('#chkFT').checked, parts=[];
-    if(bf&&selA&&selB){ const w=Object.entries(weeksValue()).map(([kw,v])=>`KW ${kw}: ${v===0?'kein Einsatz':v+(v===1?' Einsatz':' Einsätze')}`); parts.push(`Betriebsferien ${fmt(selA)} – ${fmt(selB)}`+(w.length?' · '+w.join(' · '):'')); }
+    if(bf&&selA&&selB){ const w=Object.entries(weeksValue()).map(([kw,v])=>`KW ${kw}: ${v===0?'kein Einsatz':v+(v===1?' Einsatz':' Einsätze')}${v>0&&WT[kw]&&WT[kw].size?' ('+[...WT[kw]].sort().map(x=>WDL[parse(x).getDay()]).join(', ')+')':''}`); parts.push(`Betriebsferien ${fmt(selA)} – ${fmt(selB)}`+(w.length?' · '+w.join(' · '):'')); }
     if(ft) ersatzList().forEach(x=>{ const t=parse(x.tag),d=parse(x.ersatz); parts.push(`${x.name} (${fD(t)}) ${d<t?'vorholen':'nachholen'} am ${fD(d)}`); });
     if(!parts.length){el.innerHTML='';el.hidden=true;return;} el.hidden=false;
     el.innerHTML=`<div style="font-size:14px"><b>Ihre Meldung:</b> ${parts.join(' · ')}</div>`; }
