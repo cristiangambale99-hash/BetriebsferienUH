@@ -210,9 +210,9 @@ input:checked+.box{background:#1b8384;border-color:#1b8384}input:checked+.box:af
       const def=prev&&prev[w.kw]!==undefined?+prev[w.kw]:0;
       const opts=[0,1,2,3,4,5,6].map(v=>`<label><input type="radio" name="w${w.kw}" value="${v}" ${v===def?'checked':''}><span>${v===0?'Kein Einsatz':v+'×'}</span></label>`);
       return `<div class="wk ${def===0?'none':''}" data-kw="${w.kw}"><div class="wh"><b>KW ${w.kw}</b><span>${fmtK(w.a)} – ${fmtK(w.b)} · ${ft===7?'ganze Woche geschlossen':ft+' Ferientag'+(ft>1?'e':'')}</span></div>
-        <div class="seg" role="radiogroup" aria-label="Einsätze KW ${w.kw}">${opts[0]}<span class="segcap">oder reduziert auf … Einsätze in dieser Woche:</span>${opts.slice(1).join('')}</div></div>`;
+        <div class="seg" role="radiogroup" aria-label="Einsätze KW ${w.kw}">${opts[0]}<span class="segcap">oder reduziert auf … Einsätze in dieser Woche:</span>${opts.slice(1).join('')}</div><div class="wn wday" ${def>0?'':'hidden'}>An welchen Tagen? Gerne unten in der Bemerkung angeben. Sonst planen wir die Einsätze an Ihren üblichen Reinigungstagen.</div></div>`;
     }).join('');
-    $$('#kweeks input[type=radio]').forEach(r=>r.addEventListener('change',()=>{r.closest('.wk').classList.toggle('none',r.value==='0');summary();}));
+    $$('#kweeks input[type=radio]').forEach(r=>r.addEventListener('change',()=>{const wk=r.closest('.wk');wk.classList.toggle('none',r.value==='0');wk.querySelector('.wday').hidden=r.value==='0';summary();}));
   }
   function weeksValue(){ const o={}; $$('#kweeks .wk').forEach(w=>{o[w.dataset.kw]=+w.querySelector('input:checked').value;}); return o; }
   const WDN=['So','Mo','Di','Mi','Do','Fr','Sa'];
