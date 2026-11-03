@@ -107,7 +107,7 @@ function mailHtml(c, s, { reminder = false, inline = false, button } = {}) {
   const paras = body.split(/\n\s*\n/).map(p => p.trim()).filter(Boolean);
   const link = `${BASE_URL}/r/${c.token}`;
   const logo = inline ? `cid:${LOGO_CID}` : `${BASE_URL}/brand/clean-service-logo.png`;
-  const btnLabel = button || s.button || 'Betriebsferien melden';
+  const btnLabel = button || s.button || 'Betriebsferien / Feiertage melden';
   // Knopf steht nach allen Infos (auch Feiertage), direkt vor dem Gruss; sonst nach dem Absatz mit «Knopf»
   const gruss = paras.findIndex(p => /^(Herzlich|Freundlich|Besten Dank|Vielen Dank|Wir danken)/i.test(p));
   let idx = gruss > 0 ? gruss - 1 : paras.findIndex(p => /Knopf|Link/i.test(p)); if (idx < 0) idx = Math.min(1, paras.length - 1);
@@ -139,7 +139,7 @@ Industriestrasse 5 · 8307 Effretikon<br>T <a href="tel:+41844355355" style="col
 function mailText(c, s, { reminder = false } = {}) {
   const body = fill(s.body || DEFAULT_BODY, c, s);
   const link = `${BASE_URL}/r/${c.token}`;
-  return (reminder ? fill(REMIND_INTRO, c, s) + '\n\n' : '') + body + `\n\n${s.button || 'Betriebsferien melden'}: ${link}\n\nIndustriestrasse 5 · 8307 Effretikon · T 0844 355 355 · clean-service.ch`;
+  return (reminder ? fill(REMIND_INTRO, c, s) + '\n\n' : '') + body + `\n\n${s.button || 'Betriebsferien / Feiertage melden'}: ${link}\n\nIndustriestrasse 5 · 8307 Effretikon · T 0844 355 355 · clean-service.ch`;
 }
 
 async function resendSend(payload) {
