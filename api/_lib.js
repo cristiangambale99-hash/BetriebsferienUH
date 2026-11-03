@@ -84,9 +84,11 @@ const DEFAULT_BODY = `{Anrede}
 
 Über die Festtage reinigen wir {Objekt} wie gewohnt an den vereinbarten Tagen. Dafür müssen Sie nichts unternehmen.
 
+Falls Ihr Betrieb über Weihnachten und Neujahr Betriebsferien hat und Sie in dieser Zeit keinen oder einen reduzierten Reinigungseinsatz wünschen, teilen Sie uns dies bitte über den folgenden Knopf mit. Sie erfassen Ihre Betriebsferien von–bis und legen für jede betroffene Kalenderwoche fest, ob gar kein Einsatz oder ein reduzierter Einsatz stattfinden soll. Das dauert weniger als eine Minute.
+
 Bitte beachten Sie, dass an gesetzlichen Feiertagen, sofern diese auf Ihren regulären Reinigungstag fallen, grundsätzlich keine Reinigung durchgeführt wird.
 
-Falls Ihr Betrieb über Weihnachten und Neujahr Betriebsferien hat oder Sie trotz Feiertag eine Reinigung wünschen, teilen Sie uns dies bitte über den folgenden Knopf mit. Sie erfassen dort Ihre Betriebsferien und wählen bei Bedarf einen Ersatztermin vor oder nach dem Feiertag. Das dauert weniger als eine Minute.
+Falls Sie dennoch eine Reinigung wünschen, bitten wir Sie, uns mitzuteilen, ob diese vor- oder nachgeholt werden soll und an welchem Tag der Einsatz stattfinden soll.
 
 Herzlichen Dank für Ihr Vertrauen und freundliche Grüsse
 
@@ -105,7 +107,7 @@ function mailHtml(c, s, { reminder = false, inline = false, button } = {}) {
   const paras = body.split(/\n\s*\n/).map(p => p.trim()).filter(Boolean);
   const link = `${BASE_URL}/r/${c.token}`;
   const logo = inline ? `cid:${LOGO_CID}` : `${BASE_URL}/brand/clean-service-logo.png`;
-  const btnLabel = button || s.button || 'Betriebsferien oder Ersatztermin melden';
+  const btnLabel = button || s.button || 'Betriebsferien melden';
   let idx = paras.findIndex(p => /Knopf|Link/i.test(p)); if (idx < 0) idx = Math.min(1, paras.length - 1);
   // Jeder Absatz eine eigene Tabellenzeile mit festem Abstand – so bleiben die Absätze auch in Outlook sauber
   const T = `${F}font-size:14px;line-height:22px;color:#3c3c3b;mso-line-height-rule:exactly`;
@@ -135,7 +137,7 @@ Industriestrasse 5 · 8307 Effretikon<br>T <a href="tel:+41844355355" style="col
 function mailText(c, s, { reminder = false } = {}) {
   const body = fill(s.body || DEFAULT_BODY, c, s);
   const link = `${BASE_URL}/r/${c.token}`;
-  return (reminder ? fill(REMIND_INTRO, c, s) + '\n\n' : '') + body + `\n\n${s.button || 'Betriebsferien oder Ersatztermin melden'}: ${link}\n\nIndustriestrasse 5 · 8307 Effretikon · T 0844 355 355 · clean-service.ch`;
+  return (reminder ? fill(REMIND_INTRO, c, s) + '\n\n' : '') + body + `\n\n${s.button || 'Betriebsferien melden'}: ${link}\n\nIndustriestrasse 5 · 8307 Effretikon · T 0844 355 355 · clean-service.ch`;
 }
 
 async function resendSend(payload) {
