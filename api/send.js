@@ -22,7 +22,7 @@ module.exports = async (req, res) => {
       await L.admin('import', { rows: [{ kunde: L.TEST_KUNDE, objekt: 'Industriestrasse 5, 8307 Effretikon', ansprechperson: '', email: tm }], by: 'Testmail' });
       const d2 = await L.admin('bootstrap');
       const c = d2.customers.find(x => x.kunde === L.TEST_KUNDE) || L.testCustomer(tm);
-      const r = await L.resendSend({ from, to: [body.test], reply_to: s.reply_to, subject: '[TEST] ' + L.fill(s.subject, c, s), html: L.mailHtml(c, s, { reminder, inline: true }), text: L.mailText(c, s, { reminder }), attachments: [L.logoAttachment()] });
+      const r = await L.resendSend({ from, to: [body.test], reply_to: s.reply_to, subject: '[TEST] ' + (reminder ? 'Erinnerung: ' : '') + L.fill(s.subject, c, s), html: L.mailHtml(c, s, { reminder, inline: true }), text: L.mailText(c, s, { reminder }), attachments: [L.logoAttachment()] });
       return L.json(res, 200, { ok: true, id: r.id });
     }
 
@@ -47,7 +47,7 @@ module.exports = async (req, res) => {
     let i = 0;
     for (; i < list.length && Date.now() - t0 < 45000; i++) {
       const c = list[i];
-      const mail = { from, to: [c.email], reply_to: s.reply_to, subject: L.fill(s.subject, c, s), html: L.mailHtml(c, s, { reminder, inline: true }), text: L.mailText(c, s, { reminder }), attachments: [logo], tags: [{ name: 'tool', value: 'betriebsferien-uh' }, { name: 'kind', value: kind }] };
+      const mail = { from, to: [c.email], reply_to: s.reply_to, subject: (reminder ? 'Erinnerung: ' : '') + L.fill(s.subject, c, s), html: L.mailHtml(c, s, { reminder, inline: true }), text: L.mailText(c, s, { reminder }), attachments: [logo], tags: [{ name: 'tool', value: 'betriebsferien-uh' }, { name: 'kind', value: kind }] };
       const t = Date.now();
       try { await L.resendSend(mail); results.push({ id: c.id, status: 'ok', kind }); }
       catch (e) {

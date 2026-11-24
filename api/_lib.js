@@ -95,7 +95,7 @@ Herzlichen Dank für Ihr Vertrauen und freundliche Grüsse
 Clean Service Scaramuzzo AG
 Unterhaltsreinigung`;
 
-const REMIND_INTRO = `Vor einigen Tagen haben wir Sie zu Ihren Betriebsferien über Weihnachten und Neujahr angefragt. Falls bei Ihnen alles wie gewohnt läuft, ist nichts weiter nötig. Falls Sie Betriebsferien haben und weniger oder keine Reinigung wünschen, freuen wir uns über Ihre kurze Rückmeldung.`;
+const REMIND_INTRO = `Vor einigen Wochen haben wir Sie zu Ihren Betriebsferien über Weihnachten und Neujahr angefragt und bisher noch keine Rückmeldung von Ihnen erhalten. Falls Sie Betriebsferien haben oder an einem Feiertag eine Ersatzreinigung wünschen, bitten wir Sie um Ihre Rückmeldung bis {Frist}.`;
 
 // HTML-Mail: wirkt wie ein normaler Geschäftsbrief (weisser Hintergrund, linksbündig, Signatur).
 // Logo als Inline-Bild (cid:cs-logo) – Outlook blockiert es so nicht. In der Vorschau: gehostete URL.
@@ -139,7 +139,8 @@ Industriestrasse 5 · 8307 Effretikon<br>T <a href="tel:+41844355355" style="col
 function mailText(c, s, { reminder = false } = {}) {
   const body = fill(s.body || DEFAULT_BODY, c, s);
   const link = `${BASE_URL}/r/${c.token}`;
-  return (reminder ? fill(REMIND_INTRO, c, s) + '\n\n' : '') + body + `\n\n${s.button || 'Betriebsferien / Feiertage melden'}: ${link}\n\nIndustriestrasse 5 · 8307 Effretikon · T 0844 355 355 · clean-service.ch`;
+  const bp = body.split(/\n\s*\n/); if (reminder) bp.splice(1, 0, fill(REMIND_INTRO, c, s));
+  return bp.join('\n\n') + `\n\n${s.button || 'Betriebsferien / Feiertage melden'}: ${link}\n\nIndustriestrasse 5 · 8307 Effretikon · T 0844 355 355 · clean-service.ch`;
 }
 
 async function resendSend(payload) {
